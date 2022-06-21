@@ -1,5 +1,5 @@
 """
-EZ Folder Backup v1.0.0
+EZ Folder Backup v1.0.1
 
 A simple local backup application that runs on Windows and Linux
 
@@ -33,7 +33,7 @@ except:
 
 all_commands = ["-createpreset", "-b", "-deletepreset", "-h", "-help", "-hf", "-logfilemax", "-m", "-moveup",
                 "-movedown",
-                "-nologging", "-runbackup", "-runpreset", "-skipfile", "-viewlog", "-viewpresets"]
+                "-nologging", "-runbackup", "-runpreset", "-skipfile", "-version", "-viewlog", "-viewpresets"]
 backup_folders = []
 log_file = ""
 log_file_max_count = 50  # starts deleting the oldest file once 50 logs exist
@@ -41,6 +41,7 @@ main_folder = ""
 no_logging = False  # If true no log files will be created, False by default
 presets = {}
 skip_files = ["desktop.ini"]
+version = "1.0.1"
 
 
 def backup_file(file_name):
@@ -147,7 +148,7 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
             # copy the file over if its not found
             print("  File '" + get_filename(file) + " was not found, copying into backup directory")
             log_file += "  File '" + get_filename(
-                file) + " was not found, copying to directory\n"
+                file) + " was not found in backup folder, copying to directory\n"
             backup_location = backup_directory + file
             if use_graphics:
                 window["-ERROR-TEXT-"].update("Copying to " + str(format_text_for_gui_display(backup_location)))
@@ -165,9 +166,9 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
             continue
         print("  File '" + get_filename(file_in_backup) + " was not found, deleting file")
         log_file += "  File '" + get_filename(
-            file_in_backup) + " was not found, deleting file\n"
+            file_in_backup) + " was not found in main folder, deleting file\n"
         if use_graphics:
-            window["-ERROR-TEXT-"].update("Deleting " + str(format_text_for_gui_display(backup_location)))
+            window["-ERROR-TEXT-"].update("Deleting " + str(format_text_for_gui_display(file_in_backup)))
             window.refresh()
         os.remove(backup_directory + file_in_backup)
         # deleting folder if its empty now
@@ -756,6 +757,7 @@ def print_help_commands(print_in_console):
           "-runpreset name......................Runs backup for the input preset.        \n" \
           "-skipfile filename...................Skips this filename, use -skipfile once  \n" \
           "                                     per new filename to be skipped.          \n" \
+          "-version.............................Show the current version of this program.\n" \
           "-viewlog.............................Show latest log file.                    \n" \
           "-viewpresets.........................Shows all presets.                       \n" \
           "                                                                              \n" \
@@ -863,6 +865,9 @@ def run_commands(commands):
                 presets = move_index_in_dict(presets, cmd[1], False)
                 # ensure changes are persistent
                 save_presets_to_config(presets)
+    if "-version" in keys:
+        global version
+        print("v" + version)
     if "-viewpresets" in keys:
         print_presets(presets, True)
     if "-viewlog" in keys:
