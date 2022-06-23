@@ -1,5 +1,5 @@
 """
-EZ Folder Backup v1.0.1
+EZ Folder Backup v1.0.2
 
 A simple local backup application that runs on Windows and Linux
 
@@ -18,6 +18,7 @@ Run on linux with command line only:
 -To make a donation, please visit: https://ko-fi.com/jcecode
 """
 
+import copy
 import time
 from datetime import datetime
 import sys
@@ -26,6 +27,7 @@ from sys import platform
 import os
 import shutil
 from os.path import exists
+
 try:
     import PySimpleGUI as gui
 except:
@@ -33,21 +35,55 @@ except:
 
 all_commands = ["-createpreset", "-b", "-deletepreset", "-h", "-help", "-hf", "-logfilemax", "-m", "-moveup",
                 "-movedown",
-                "-nologging", "-runbackup", "-runpreset", "-skipfile", "-version", "-viewlog", "-viewpresets"]
+                "-nologging", "-runbackup", "-runpreset", "-skipfile", "-support", "-version", "-viewlog",
+                "-viewpresets"]
 backup_folders = []
 log_file = ""
 log_file_max_count = 50  # starts deleting the oldest file once 50 logs exist
 main_folder = ""
 no_logging = False  # If true no log files will be created, False by default
 presets = {}
-skip_files = ["desktop.ini"]
-version = "1.0.1"
+skip_files = []
+icon_file = ""
+version = "1.0.2"
 
 
 def backup_file(file_name):
     """ If the file exists its backed up ending with .old """
     if exists(file_name):
         shutil.copyfile(file_name, file_name + '.old')
+
+
+def load_settings_from_config():
+    global log_file_max_count
+    global no_logging
+    global skip_files
+    if exists('settings.cfg'):
+        skip_files = []
+        with open('settings.cfg', 'r') as f:
+            for line in f:
+                line = line.strip()
+                if 'log_file_max_count=' in line:
+                    log_file_max_count = int(line[19: len(line)])
+                elif 'no_logging=' in line:
+                    no_logging = line[11: len(line)] == 'True'
+                elif 'skip_file=' in line:
+                    skip_files.append(line[10: len(line)])
+    else:
+        # save default settings to the config
+        save_settings_to_config()
+
+
+def save_settings_to_config():
+    global log_file_max_count
+    global no_logging
+    global skip_files
+    settings = "log_file_max_count=" + str(log_file_max_count) + "\n"
+    settings += "no_logging=" + str(no_logging) + "\n"
+    for file in skip_files:
+        settings += "skip_file=" + file + "\n"
+    with open('settings.cfg', 'w') as f:
+        f.write(settings)
 
 
 def save_presets_to_config(presets):
@@ -146,12 +182,12 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
             debugging += " was not found"
         if not found:
             # copy the file over if its not found
-            print("  File '" + get_filename(file) + " was not found, copying into backup directory")
-            log_file += "  File '" + get_filename(
-                file) + " was not found in backup folder, copying to directory\n"
+            print("  '" + get_filename(file) + "' not found, copying to this backup directory")
+            log_file += "  '" + get_filename(
+                file) + "' not found, copying to this backup directory\n"
             backup_location = backup_directory + file
             if use_graphics:
-                window["-ERROR-TEXT-"].update("Copying to " + str(format_text_for_gui_display(backup_location)))
+                window["-ERROR-TEXT-"].update("Copying to " + str(format_text_for_gui_display(get_filename(file))))
                 window.refresh()
             assure_path_exists(path_to_file(backup_location))
             if using_windows:
@@ -164,11 +200,11 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
         # continue if this file exists in the main directory
         if exists(main_folder + file_in_backup):
             continue
-        print("  File '" + get_filename(file_in_backup) + " was not found, deleting file")
-        log_file += "  File '" + get_filename(
-            file_in_backup) + " was not found in main folder, deleting file\n"
+        print("  '" + get_filename(file_in_backup) + "' is not in main folder, deleting file")
+        log_file += "  '" + get_filename(
+            file_in_backup) + "' is not in main folder, deleting file\n"
         if use_graphics:
-            window["-ERROR-TEXT-"].update("Deleting " + str(format_text_for_gui_display(file_in_backup)))
+            window["-ERROR-TEXT-"].update("Deleting " + str(format_text_for_gui_display(get_filename(file_in_backup))))
             window.refresh()
         os.remove(backup_directory + file_in_backup)
         # deleting folder if its empty now
@@ -360,7 +396,8 @@ def run_backup(window, main_folder, backup_folders):
     use_graphics = type(window) != int
     global using_windows
     global log_file
-    log_file = "Log For EZ Folder Backup:\n-------------------------\n\n"
+    log_file = "Backup Log For Main Folder:\n"
+    log_file += main_folder + "\n\n"
     if not exists(main_folder):
         if use_graphics:
             window["-ERROR-TEXT-"].update("The main folder was not found")
@@ -473,8 +510,13 @@ def show_gui():
                 values=preset_keys, enable_events=True, size=(40, 20), key="-PRESET LIST-"
             )
         ],
-        [gui.Button("Move Up", size=(9, 1))],
-        [gui.Button("Move Down", size=(9, 1))],
+        [gui.Frame('', [
+            [gui.Button(key='Move Up', image_filename='images/up_arrow.png', image_size=(48, 48), border_width=0,
+                        button_color=(gui.theme_background_color(), gui.theme_background_color()), ),
+             gui.Button(key='Move Down', image_filename='images/down_arrow.png', image_size=(48, 48),
+                        border_width=0,
+                        button_color=(gui.theme_background_color(), gui.theme_background_color()), )
+             ]], title_color='yellow', border_width=0)],
     ]
 
     right_column = [
@@ -508,12 +550,19 @@ def show_gui():
         ],
         [gui.Text("Backup Preset Name:")],
         [gui.In(size=(25, 1), enable_events=True, key="-CURRENT-PRESET-NAME-")],
-        [gui.Button("Save Preset", size=(14, 1))],
-        [gui.Button("Delete Preset", size=(14, 1))],
-        [gui.Button("Backup Files", size=(14, 1))],
-        [gui.Button("View Backup Log", size=(14, 1))],
-        [gui.Button("Make Donation", size=(14, 1))],
-        [gui.Button("Exit", size=(14, 1))],
+
+        [gui.Frame('Backup Preset', [[gui.Button("New", size=(14, 1), image_filename='images/new_preset.png'),
+                         gui.Button("Save", size=(14, 1), image_filename='images/save_preset.png'),
+                         gui.Button("Delete", size=(14, 1), image_filename='images/delete_preset.png')]],
+                   border_width=1)],
+        [gui.Frame('', [[gui.Button("Run Backup", size=(14, 1), image_filename='images/backup_files.png'),
+                         gui.Button("View Log", size=(14, 1), image_filename='images/view_log.png')]],
+                   border_width=0)],
+        [gui.Frame('', [[gui.Button("Settings", size=(14, 1), image_filename='images/settings.png'),
+                         gui.Button("Get Help", size=(14, 1), image_filename='images/get_help.png'),
+                         gui.Button("Donate", size=(14, 1), image_filename='images/make_donation.png')]],
+                   border_width=0)],
+        [gui.Frame('', [[gui.Button("Exit", size=(14, 1), image_filename='images/exit.png')]], border_width=0)],
         [gui.Text("", size=(50, 1), key="-ERROR-TEXT-", text_color="red")],
     ]
 
@@ -524,8 +573,13 @@ def show_gui():
             gui.Column(right_column),
         ]
     ]
+    global icon_file
+    if using_windows:
+        icon_file = 'images/icon.ico'
+    else:
+        icon_file = 'images/icon.png'
 
-    window = gui.Window("EZ Folder Backup", layout, icon='images/icon.ico')
+    window = gui.Window("EZ Folder Backup", layout, icon=icon_file)
 
     while True:
         event, values = window.read()
@@ -537,14 +591,18 @@ def show_gui():
                 continue
             else:
                 break
-        elif event == "Make Donation":
-            if using_windows:
-                if not question_box("Open the website 'https://ko-fi.com/jcecode' externally?", 80, 15):
+        elif event == "Settings":
+            show_settings_box()
+        elif event == "Get Help":
+            show_support_email()
+        elif event == "Donate":
+            if using_gui:
+                if not question_box("Open the website 'https://ko-fi.com/jcecode' externally?", 35, 15):
                     continue
                 webbrowser.open('https://ko-fi.com/jcecode')
             else:
                 print("to make a donation, please visit https://ko-fi.com/jcecode")
-        elif event == "View Backup Log":
+        elif event == "View Log":
             if using_windows:
                 open_last_log_file()
             else:
@@ -560,7 +618,7 @@ def show_gui():
                 presets = move_index_in_dict(presets, values["-CURRENT-PRESET-NAME-"], False)
                 save_presets_to_config(presets)
                 refresh_presets_list(window, presets)
-        elif event == "Backup Files":
+        elif event == "Run Backup":
             use_backup_folders = get_backup_folders_from_gui(values)
             if valid_input_for_backup(values):
                 if not question_box("Backup files for preset '" + str(values["-CURRENT-PRESET-NAME-"]) + "'?", 80, 15):
@@ -569,7 +627,16 @@ def show_gui():
                 run_backup(window, values["-MAIN-FOLDER-"], use_backup_folders)
             else:
                 window["-ERROR-TEXT-"].update("You must set the main drive and at least one backup drive")
-        elif event == "Delete Preset":
+        elif event == "New":
+            window["-MAIN-FOLDER-"].update("")
+            window["-BACKUP1-"].update("")
+            window["-BACKUP2-"].update("")
+            window["-BACKUP3-"].update("")
+            window["-BACKUP4-"].update("")
+            window["-BACKUP5-"].update("")
+            window["-CURRENT-PRESET-NAME-"].update("")
+
+        elif event == "Delete":
             if values["-CURRENT-PRESET-NAME-"] in presets:
                 if not question_box("Delete preset '" + str(values["-CURRENT-PRESET-NAME-"]) + "'?", 80, 15):
                     continue
@@ -579,7 +646,7 @@ def show_gui():
                 save_presets_to_config(presets)
             else:
                 window["-ERROR-TEXT-"].update("Cannot Delete, Not Found")
-        elif event == "Save Preset":
+        elif event == "Save":
             preset_key = values["-CURRENT-PRESET-NAME-"]
             if len(preset_key) == 0:
                 window["-ERROR-TEXT-"].update("Backup Preset Name is not set")
@@ -621,6 +688,105 @@ def show_gui():
     window.close()
 
 
+def show_settings_box():
+    global icon_file
+    global skip_files
+    previous_skip_files = copy.copy(skip_files)
+    global version
+    layout = [
+        [gui.Text('Settings:')],
+        [gui.Frame('', [[gui.Text("Max number of log files: "),
+                         gui.Input("", size=(14, 1), key="-MAX-LOG-FILES-")]], border_width=0)],
+        [gui.Frame('', [[gui.Text("Do not log backups: "),
+                         gui.Checkbox("", size=(14, 1), key="-DO-NOT-LOG-")]], border_width=0)],
+
+        [gui.Frame('', [[gui.Text("Filenames to ignore:", size=(20, 1))]], title_color='yellow', border_width=0)],
+        [gui.Frame('', [[gui.Listbox(
+            values=skip_files, enable_events=True, size=(30, 10), key="-IGNORED-FILES-"
+        )]], border_width=0)],
+
+        [gui.Frame('',
+                   [[gui.Text("Ignore Filename:", size=(16, 1)), gui.Input("", size=(14, 1), key="-IGNORE-FILENAME-"),
+                     gui.Button("Add", size=(14, 1), key="-ADD-IGNORED-"),
+                     gui.Button("Remove", size=(14, 1), key="-REMOVE-IGNORED-")]], border_width=0)],
+
+        [gui.Frame('', [[gui.Text('Version: ' + version)]], border_width=0)],
+
+        [gui.Frame('', [[gui.Button("Save", size=(14, 1)),
+                         gui.Button("Apply", size=(14, 1)),
+                         gui.Button("Cancel", size=(14, 1))]], title_color='yellow', border_width=0)],
+    ]
+    window = gui.Window("EZ Folder Backup Settings", layout, margins=(8, 20), icon=icon_file,
+                        element_justification='l', finalize=True)
+    global log_file_max_count
+    # previous_log_file_max_count = copy.copy(log_file_max_count)
+    window["-MAX-LOG-FILES-"].update(str(log_file_max_count))
+    global no_logging
+    # previous_no_logging = copy.copy(no_logging)
+    if no_logging:
+        window["-DO-NOT-LOG-"].update(True)
+    while True:
+        event, values = window.read()
+        if event == "-ADD-IGNORED-":
+            to_add = values["-IGNORE-FILENAME-"]
+            if to_add not in skip_files:
+                skip_files.append(to_add)
+                window["-IGNORED-FILES-"].update(skip_files)
+        if event == "-REMOVE-IGNORED-":
+            to_remove = values["-IGNORE-FILENAME-"]
+            to_remove = to_remove[2:len(to_remove) - 3]
+            # print("trying to remove " + str(to_remove) + " with " + str(len(skip_files)) + "files to skip")
+            for i in range(0, len(skip_files)):
+                # print(str(i))
+                # print("comparing " + str(skip_files[i]) + " to " + str(to_remove))
+                if skip_files[i] == to_remove:
+                    # print("deleting from files to skip")
+                    del skip_files[i]
+                    window["-IGNORED-FILES-"].update(skip_files)
+                    # print("files to skip now " + str(skip_files))
+        if event == "-IGNORED-FILES-":
+            window["-IGNORE-FILENAME-"].update(values["-IGNORED-FILES-"])
+        if event == "Save":
+            no_logging = values["-DO-NOT-LOG-"]
+            log_file_max_count = int(values["-MAX-LOG-FILES-"])
+            save_settings_to_config()
+            break
+        if event == "Apply":
+            no_logging = values["-DO-NOT-LOG-"]
+            log_file_max_count = int(values["-MAX-LOG-FILES-"])
+            previous_skip_files = copy.copy(skip_files)
+            # skip_files should already be setup
+            save_settings_to_config()
+        if event == "Cancel":
+            skip_files = previous_skip_files  # this is important to revert changes
+            break
+        if event == gui.WIN_CLOSED:
+            break
+    window.close()
+
+
+def show_support_email():
+    """ A dialogue box where you can select the email address """
+    # dialogue_box("Email help.jcecode@yahoo.com for questions or to report bugs.", 15, 20)
+    support_email = 'help.jcecode@yahoo.com'
+    layout = [
+        [gui.Text('For questions or to report bugs please email: ')],
+        [gui.InputText(support_email, use_readonly_for_disable=True, disabled=True, size=len(support_email),
+                       disabled_readonly_background_color="grey70")],
+        [gui.Button("Ok")]
+    ]
+    global icon_file
+    window = gui.Window("EZ Folder Backup", layout, margins=(15, 20), icon=icon_file,
+                        element_justification='c')
+    while True:
+        event, values = window.read()
+        if event == "Ok":
+            break
+        if event == gui.WIN_CLOSED:
+            break
+    window.close()
+
+
 def question_box(question, x_size, y_size):
     """ Opens a binary question box and returns the users answer """
 
@@ -630,10 +796,13 @@ def question_box(question, x_size, y_size):
 
     layout = [
         [gui.Text(str(question))],
-        [gui.Button("Yes")],
-        [gui.Button("No")]
+        [gui.Frame('', [[gui.Button("Yes", size=(5, 1)),
+                         gui.Button("No", size=(5, 1))]],
+                   border_width=0)],
     ]
-    window = gui.Window("EZ Folder Backup", layout, margins=(x_size, y_size), icon='images/icon.ico')
+    global icon_file
+    window = gui.Window("EZ Folder Backup", layout, margins=(x_size, y_size), icon=icon_file,
+                        element_justification='c')
     answered_yes = False
     while True:
         event, values = window.read()
@@ -711,7 +880,8 @@ def show_eula_gui():
         [gui.Button("I Agree")],
         [gui.Button("I Do Not Agree")]
     ]
-    window = gui.Window("EZ Folder Backup", layout, icon='images/icon.ico', margins=(55, 55))
+    global icon_file
+    window = gui.Window("EZ Folder Backup", layout, icon=icon_file, margins=(55, 55))
     exit_app = False
     while True:
         event, values = window.read()
@@ -757,6 +927,7 @@ def print_help_commands(print_in_console):
           "-runpreset name......................Runs backup for the input preset.        \n" \
           "-skipfile filename...................Skips this filename, use -skipfile once  \n" \
           "                                     per new filename to be skipped.          \n" \
+          "-support.............................Show support email for questions.        \n" \
           "-version.............................Show the current version of this program.\n" \
           "-viewlog.............................Show latest log file.                    \n" \
           "-viewpresets.........................Shows all presets.                       \n" \
@@ -865,6 +1036,8 @@ def run_commands(commands):
                 presets = move_index_in_dict(presets, cmd[1], False)
                 # ensure changes are persistent
                 save_presets_to_config(presets)
+    if "-support" in keys:
+        print("For questions or to report bugs please email help.jcecode@yahoo.com")
     if "-version" in keys:
         global version
         print("v" + version)
@@ -990,8 +1163,12 @@ if __name__ == '__main__':
             if gui.WIN_CLOSED:
                 pass
         except:
-            print("PySimpleGui is not installed, please install using pip before using the graphical interface.\n Otherwise run the parameter -help to see all command line-only parameters")
+            print(
+                "PySimpleGui is not installed, please install using pip before using the graphical interface.\n Otherwise run the parameter -help to see all command line-only parameters")
             sys.exit(1)
+        # only loading settings in the GUI for now, otherwise they must be entered with run command
+        # to be used
+        load_settings_from_config()
         show_gui()
     # Running with command-line parameters only
     else:

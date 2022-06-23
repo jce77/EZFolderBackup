@@ -11,14 +11,16 @@ The latest version can be found [here](https://github.com/jce77/EZFolderBackup).
 
 ## Running Instructions:
 - Running on Windows:
+  - Ensure the _images_ folder is in the same folder as the included .exe file
   - Run _EZ Folder Backup.exe_
 - Running on Linux with command line only:
   - View all commands with: `$ python main.py -help`
 - Running on Ubuntu Linux with graphics:
+  - Ensure the _images_ folder is in the same folder as _main.py_
   - Install _PySimpleGUI_ on pip: `$ pip install pysimplegui `
   - Install _tkinter_ on your OS:
     - If using Ubuntu Linux with apt: `$ sudo apt-get install python3-tk`
-    - If using a distro with dnf: `$ sudo dnf install python3-tkinter`
+    - Otherwise if using a distro with dnf: `$ sudo dnf install python3-tkinter`
   - Run with: `$ python3 main.py`
 
 ## Basic Usage With Graphical Interface
@@ -40,6 +42,6 @@ The latest version can be found [here](https://github.com/jce77/EZFolderBackup).
 - View the results: ` $ python main.py -viewlog`
 
 ## Getting Started Video For Both Windows and Linux
-[![Windows Usage](http://img.youtube.com/vi/wE98Zrmvr-k/0.jpg)](https://youtu.be/wE98Zrmvr-k "Getting Started")
+[![Windows Usage](http://img.youtube.com/vi/jmEQumGNg7o/0.jpg)](https://youtu.be/jmEQumGNg7o "Getting Started")
 
 
