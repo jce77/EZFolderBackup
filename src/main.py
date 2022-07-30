@@ -1,9 +1,8 @@
 """
-EZ Folder Backup v1.0.3
+EZ Folder Backup v1.0.4
 
-Update v1.0.3
-- Added an option in settings to ignore all files inside a specific folder name
-- Instead of deleting files now it just sends them to Recycle Bin on Windows or Trash on Linux
+Update v1.0.4
+- Fixed an issue where the new file search method was ignoring certain extensions
 
 A simple local backup application that runs on Windows and Linux
 
@@ -50,7 +49,7 @@ presets = {}
 skip_files = []
 skip_folders = []
 icon_file = ""
-version = "1.0.3"
+version = "1.0.4"
 
 
 def backup_file(file_name):
@@ -116,12 +115,10 @@ def get_all_filenames(path):
     """ Returns all filenames inside the given path and its sub-folders """
     global skip_folders
     list_of_files = []
-    extensions = ('.txt')
     for dname, dirs, files in os.walk(path):
         dirs[:] = [d for d in dirs if d not in skip_folders]
         for fname in files:
-            if (fname.lower().endswith(extensions)):
-                list_of_files.append(os.path.join(dname, fname))
+            list_of_files.append(os.path.join(dname, fname))
     return list_of_files
 
 
