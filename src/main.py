@@ -1,5 +1,9 @@
 """
-EZ Folder Backup v1.0.2
+EZ Folder Backup v1.0.3
+
+Update v1.0.3
+- Added an option in settings to ignore all files inside a specific folder name
+- Instead of deleting files now it just sends them to Recycle Bin on Windows or Trash on Linux
 
 A simple local backup application that runs on Windows and Linux
 
@@ -17,7 +21,7 @@ Run on linux with command line only:
 -Latest version found at: https://github.com/jce77/EZFolderBackup
 -To make a donation, please visit: https://ko-fi.com/jcecode
 """
-
+from send2trash import send2trash
 import copy
 import time
 from datetime import datetime
@@ -36,7 +40,7 @@ except:
 all_commands = ["-createpreset", "-b", "-deletepreset", "-h", "-help", "-hf", "-logfilemax", "-m", "-moveup",
                 "-movedown",
                 "-nologging", "-runbackup", "-runpreset", "-skipfile", "-support", "-version", "-viewlog",
-                "-viewpresets"]
+                "-viewpresets", "-skipfolder"]
 backup_folders = []
 log_file = ""
 log_file_max_count = 50  # starts deleting the oldest file once 50 logs exist
@@ -44,8 +48,9 @@ main_folder = ""
 no_logging = False  # If true no log files will be created, False by default
 presets = {}
 skip_files = []
+skip_folders = []
 icon_file = ""
-version = "1.0.2"
+version = "1.0.3"
 
 
 def backup_file(file_name):
@@ -58,8 +63,10 @@ def load_settings_from_config():
     global log_file_max_count
     global no_logging
     global skip_files
+    global skip_folders
     if exists('settings.cfg'):
         skip_files = []
+        skip_folders = []
         with open('settings.cfg', 'r') as f:
             for line in f:
                 line = line.strip()
@@ -69,6 +76,8 @@ def load_settings_from_config():
                     no_logging = line[11: len(line)] == 'True'
                 elif 'skip_file=' in line:
                     skip_files.append(line[10: len(line)])
+                elif 'skip_folder=' in line:
+                    skip_folders.append(line[12: len(line)])
     else:
         # save default settings to the config
         save_settings_to_config()
@@ -78,10 +87,13 @@ def save_settings_to_config():
     global log_file_max_count
     global no_logging
     global skip_files
+    global skip_folders
     settings = "log_file_max_count=" + str(log_file_max_count) + "\n"
     settings += "no_logging=" + str(no_logging) + "\n"
     for file in skip_files:
         settings += "skip_file=" + file + "\n"
+    for folder_name in skip_folders:
+        settings += "skip_folder=" + folder_name + "\n"
     with open('settings.cfg', 'w') as f:
         f.write(settings)
 
@@ -102,10 +114,14 @@ def save_presets_to_config(presets):
 
 def get_all_filenames(path):
     """ Returns all filenames inside the given path and its sub-folders """
+    global skip_folders
     list_of_files = []
-    for root, dirs, files in os.walk(path):
-        for file in files:
-            list_of_files.append(os.path.join(root, file))
+    extensions = ('.txt')
+    for dname, dirs, files in os.walk(path):
+        dirs[:] = [d for d in dirs if d not in skip_folders]
+        for fname in files:
+            if (fname.lower().endswith(extensions)):
+                list_of_files.append(os.path.join(dname, fname))
     return list_of_files
 
 
@@ -200,13 +216,19 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
         # continue if this file exists in the main directory
         if exists(main_folder + file_in_backup):
             continue
-        print("  '" + get_filename(file_in_backup) + "' is not in main folder, deleting file")
-        log_file += "  '" + get_filename(
-            file_in_backup) + "' is not in main folder, deleting file\n"
+        if using_windows:
+            print("  '" + get_filename(file_in_backup) + "' is not in main folder, sending to Recycle Bin")
+            log_file += "  '" + get_filename(
+                file_in_backup) + "' is not in main folder, sending to Recycle Bin\n"
+        else:
+            print("  '" + get_filename(file_in_backup) + "' is not in main folder, sending to Trash")
+            log_file += "  '" + get_filename(
+                file_in_backup) + "' is not in main folder, sending to Trash\n"
         if use_graphics:
-            window["-ERROR-TEXT-"].update("Deleting " + str(format_text_for_gui_display(get_filename(file_in_backup))))
+            window["-ERROR-TEXT-"].update("Trashing " + str(format_text_for_gui_display(get_filename(file_in_backup))))
             window.refresh()
-        os.remove(backup_directory + file_in_backup)
+        # os.remove(backup_directory + file_in_backup) # old method that fully deletes file instantly
+        send2trash(backup_directory + file_in_backup)
         # deleting folder if its empty now
         directory_of_this = path_to_file(backup_directory + file_in_backup)
         dir_list = os.listdir(directory_of_this)
@@ -520,9 +542,7 @@ def show_gui():
     ]
 
     right_column = [
-        [gui.Text("Add backup folders which will become clones of the main folder.")],
-        [gui.Text("Files that do not exist in the Main Folder will be deleted from")],
-        [gui.Text("the backup folders, so be careful or data may be lost.")],
+        [gui.Text("Backup Locations:")],
         [
             gui.Text("Backup 1:"),
             gui.In(size=(25, 1), enable_events=True, key="-BACKUP1-"),
@@ -621,7 +641,8 @@ def show_gui():
         elif event == "Run Backup":
             use_backup_folders = get_backup_folders_from_gui(values)
             if valid_input_for_backup(values):
-                if not question_box("Backup files for preset '" + str(values["-CURRENT-PRESET-NAME-"]) + "'?", 80, 15):
+                if not question_box("Backup files for preset '" + str(values["-CURRENT-PRESET-NAME-"]) + "'?\n" +
+                        "(Files that no longer exist in the Main Folder will be trashed)", 80, 15):
                     continue
                 window["-ERROR-TEXT-"].update("Checking for files to copy... ")
                 run_backup(window, values["-MAIN-FOLDER-"], use_backup_folders)
@@ -691,6 +712,7 @@ def show_gui():
 def show_settings_box():
     global icon_file
     global skip_files
+    global skip_folders
     previous_skip_files = copy.copy(skip_files)
     global version
     layout = [
@@ -700,7 +722,8 @@ def show_settings_box():
         [gui.Frame('', [[gui.Text("Do not log backups: "),
                          gui.Checkbox("", size=(14, 1), key="-DO-NOT-LOG-")]], border_width=0)],
 
-        [gui.Frame('', [[gui.Text("Filenames to ignore:", size=(20, 1))]], title_color='yellow', border_width=0)],
+        # IGNORE FILE
+        [gui.Frame('', [[gui.Text("File Names to ignore:", size=(20, 1))]], title_color='yellow', border_width=0)],
         [gui.Frame('', [[gui.Listbox(
             values=skip_files, enable_events=True, size=(30, 10), key="-IGNORED-FILES-"
         )]], border_width=0)],
@@ -710,6 +733,18 @@ def show_settings_box():
                      gui.Button("Add", size=(14, 1), key="-ADD-IGNORED-"),
                      gui.Button("Remove", size=(14, 1), key="-REMOVE-IGNORED-")]], border_width=0)],
 
+        # IGNORE FOLDER
+        [gui.Frame('', [[gui.Text("Folder Names to ignore:", size=(20, 1))]], title_color='yellow', border_width=0)],
+        [gui.Frame('', [[gui.Listbox(
+            values=skip_folders, enable_events=True, size=(30, 10), key="-IGNORED-FOLDERS-"
+        )]], border_width=0)],
+
+        [gui.Frame('',
+                   [[gui.Text("Ignore Folder:", size=(16, 1)), gui.Input("", size=(14, 1), key="-IGNORE-FOLDER-"),
+                     gui.Button("Add", size=(14, 1), key="-ADD-IGNORED-FOLDER-"),
+                     gui.Button("Remove", size=(14, 1), key="-REMOVE-IGNORED-FOLDER-")]], border_width=0)],
+
+        # VERSION
         [gui.Frame('', [[gui.Text('Version: ' + version)]], border_width=0)],
 
         [gui.Frame('', [[gui.Button("Save", size=(14, 1)),
@@ -734,7 +769,8 @@ def show_settings_box():
                 window["-IGNORED-FILES-"].update(skip_files)
         if event == "-REMOVE-IGNORED-":
             to_remove = values["-IGNORE-FILENAME-"]
-            to_remove = to_remove[2:len(to_remove) - 3]
+            if to_remove[0] == '(':
+                to_remove = to_remove[2:len(to_remove) - 3]
             # print("trying to remove " + str(to_remove) + " with " + str(len(skip_files)) + "files to skip")
             for i in range(0, len(skip_files)):
                 # print(str(i))
@@ -744,8 +780,38 @@ def show_settings_box():
                     del skip_files[i]
                     window["-IGNORED-FILES-"].update(skip_files)
                     # print("files to skip now " + str(skip_files))
+
+        # ADDING AND REMOVING IGNORED FOLDERS
+        if event == "-ADD-IGNORED-FOLDER-":
+            to_add = values["-IGNORE-FOLDER-"]
+            if to_add not in skip_folders:
+                skip_folders.append(to_add)
+                window["-IGNORED-FOLDERS-"].update(skip_folders)
+        if event == "-REMOVE-IGNORED-FOLDER-":
+            to_remove = values["-IGNORE-FOLDER-"]
+            if to_remove[0] == '(':
+                to_remove = to_remove[2:len(to_remove) - 3]
+            # print("trying to remove " + str(to_remove) + " with " + str(len(skip_folders)) + "files to skip")
+            for i in range(0, len(skip_folders)):
+                # print(str(i))
+                # print("comparing " + str(skip_folders[i]) + " to " + str(to_remove))
+                if skip_folders[i] == to_remove:
+                    # print("deleting from files to skip")
+                    del skip_folders[i]
+                    window["-IGNORED-FOLDERS-"].update(skip_folders)
+                    # print("files to skip now " + str(skip_folders))
+        #
         if event == "-IGNORED-FILES-":
             window["-IGNORE-FILENAME-"].update(values["-IGNORED-FILES-"])
+        if event == "-IGNORED-FOLDERS-":
+            value = str(values["-IGNORED-FOLDERS-"])
+            if value[0] == '{':
+                value = str(value).strip('{')
+                value = value.strip('}')
+            elif value[0] == '[':
+                value = str(value).strip("['")
+                value = value.strip("']")
+            window["-IGNORE-FOLDER-"].update(value)
         if event == "Save":
             no_logging = values["-DO-NOT-LOG-"]
             log_file_max_count = int(values["-MAX-LOG-FILES-"])
@@ -755,10 +821,12 @@ def show_settings_box():
             no_logging = values["-DO-NOT-LOG-"]
             log_file_max_count = int(values["-MAX-LOG-FILES-"])
             previous_skip_files = copy.copy(skip_files)
+            previous_skip_folders = copy.copy(skip_folders)
             # skip_files should already be setup
             save_settings_to_config()
         if event == "Cancel":
             skip_files = previous_skip_files  # this is important to revert changes
+            skip_folders = previous_skip_folders  # this is important to revert changes
             break
         if event == gui.WIN_CLOSED:
             break
@@ -927,6 +995,9 @@ def print_help_commands(print_in_console):
           "-runpreset name......................Runs backup for the input preset.        \n" \
           "-skipfile filename...................Skips this filename, use -skipfile once  \n" \
           "                                     per new filename to be skipped.          \n" \
+          "-skipfolder foldername...............Skips this folder name, use -skipfolder  \n" \
+          "                                     once per new filename to be skipped. Do  \n" \
+          "                                     not enter a path, just the folder name.  \n" \
           "-support.............................Show support email for questions.        \n" \
           "-version.............................Show the current version of this program.\n" \
           "-viewlog.............................Show latest log file.                    \n" \
@@ -991,9 +1062,11 @@ def run_commands(commands):
     global no_logging
     global log_file_max_count
     global skip_files
+    global skip_folders
     global presets
     presets = load_presets()
     skip_files = []
+    skip_folders = []
     keys = []
     for command in commands:
         keys.append(command[0])
@@ -1060,6 +1133,10 @@ def run_commands(commands):
         for cmd in commands:
             if cmd[0] == "-skipfile":
                 skip_files.append(cmd[1])
+    if "-skipfolder" in keys:
+        for cmd in commands:
+            if cmd[0] == "-skipfolder":
+                skip_folders.append(cmd[1])
     # Presets
     if "-createpreset" in keys:
         preset_key = ""
