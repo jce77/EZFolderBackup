@@ -15,6 +15,7 @@ except:
 using_gui = False
 previous_skip_folders = []
 
+
 def get_backup_folders_from_gui(values):
     """ Returns all the backup folder names that were entered into the GUI """
     backup_folders = []

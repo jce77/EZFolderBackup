@@ -1,10 +1,8 @@
 """
-EZ Folder Backup v1.0.5
+EZ Folder Backup v1.0.6
 
-Update v1.0.5
--Reformatted the single script into multiple files
--Fixed a crash caused when removing certain file/folder names to be ignored
--Fixed a crash when canceling out of settings menu
+Update v1.0.6
+- Now files get moved instead of just copied and deleted, greatly reducing backup time in some cases
 
 A simple local backup application that runs on Windows and Linux
 

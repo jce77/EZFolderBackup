@@ -17,7 +17,7 @@ main_folder = ""
 
 presets = {}
 icon_file = ""
-version = "1.0.5"
+version = "1.0.6"
 using_windows = False
 
 
