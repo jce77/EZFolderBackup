@@ -17,7 +17,7 @@ main_folder = ""
 
 presets = {}
 icon_file = ""
-version = "1.0.7"
+version = "1.0.8"
 using_windows = False
 
 
@@ -49,6 +49,12 @@ def run_backup(window, main_folder, backup_folders):
         window["-BAR-"].update(0)
         if "NOT FOUND" in response:
             error_msg = response
+        elif "BACKUP CANCELLED" in response:
+            window["-ERROR-TEXT-"].update("Backup Cancelled")
+            print("Backup Cancelled")
+            logging.log_file += "\n-------------------------------\nBackup Cancelled\n-------------------------------"
+            logging.print_to_log("Backup", logging.log_file)
+            return
     if ui.using_gui:
         if error_msg == "":
             window["-ERROR-TEXT-"].update(response)

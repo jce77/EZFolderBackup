@@ -1,10 +1,10 @@
 """
-EZ Folder Backup v1.0.7
+EZ Folder Backup v1.0.8
 
-Update v1.0.7
-- Fixed a problem with the GUI not properly showing the current operation
-- Added a loading bar for backup operations
-- Added a cancel button for backup operations that pauses and prompts further confirmation
+Update v1.0.8
+- Fixed a problem where loading bar only showed up for the first backup
+- Changed up/down arrows color
+- Changed theme and button press colors
 
 A simple local backup application that runs on Windows and Linux
 

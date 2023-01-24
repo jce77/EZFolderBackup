@@ -1,6 +1,5 @@
 import copy
 import webbrowser
-
 from scripts import program as main
 from scripts import saving
 from scripts import files
@@ -40,6 +39,9 @@ def show_gui():
         preset_keys.append(str(key))
 
     BAR_MAX = 1
+
+    gui.theme('DarkGrey')
+    gui.theme_button_color('#7A7A7A')
 
     left_column = [
         [
@@ -96,19 +98,28 @@ def show_gui():
         [gui.Text("Backup Preset Name:")],
         [gui.In(size=(25, 1), enable_events=True, key="-CURRENT-PRESET-NAME-")],
 
-        [gui.Frame('Backup Preset', [[gui.Button("New", size=(14, 1), image_filename='images/new_preset.png'),
-                         gui.Button("Save", size=(14, 1), image_filename='images/save_preset.png'),
-                         gui.Button("Delete", size=(14, 1), image_filename='images/delete_preset.png')]],
+        [gui.Frame('Backup Preset', [[gui.Button("New", size=(14, 1), image_filename='images/new_preset.png',
+                                                 mouseover_colors=('#CBCBCB', '#333333')),
+                         gui.Button("Save", size=(14, 1), image_filename='images/save_preset.png',
+                                    mouseover_colors=('#CBCBCB', '#333333')),
+                         gui.Button("Delete", size=(14, 1), image_filename='images/delete_preset.png',
+                                    mouseover_colors=('#CBCBCB', '#333333'))]],
                    border_width=1)],
-        [gui.Frame('', [[gui.Button("Run Backup", size=(14, 1), image_filename='images/backup_files.png'),
-                         gui.Button("View Log", size=(14, 1), image_filename='images/view_log.png')]],
+        [gui.Frame('', [[gui.Button("Run Backup", size=(14, 1), image_filename='images/backup_files.png',
+                                    mouseover_colors=('#CBCBCB', '#333333')),
+                         gui.Button("View Log", size=(14, 1), image_filename='images/view_log.png',
+                                    mouseover_colors=('#CBCBCB', '#333333'))]],
                    border_width=0)],
-        [gui.Frame('', [[gui.Button("Settings", size=(14, 1), image_filename='images/settings.png'),
-                         gui.Button("Get Help", size=(14, 1), image_filename='images/get_help.png'),
-                         gui.Button("Donate", size=(14, 1), image_filename='images/make_donation.png')]],
+        [gui.Frame('', [[gui.Button("Settings", size=(14, 1), image_filename='images/settings.png',
+                                    mouseover_colors=('#CBCBCB', '#333333')),
+                         gui.Button("Get Help", size=(14, 1), image_filename='images/get_help.png',
+                                    mouseover_colors=('#CBCBCB', '#333333')),
+                         gui.Button("Donate", size=(14, 1), image_filename='images/make_donation.png',
+                                    mouseover_colors=('#CBCBCB', '#333333'))]],
                    border_width=0)],
-        [gui.Frame('', [[gui.Button("Exit", size=(14, 1), image_filename='images/exit.png')]], border_width=0)],
-        [gui.Text("", size=(50, 1), key="-ERROR-TEXT-", text_color="red")],
+        [gui.Frame('', [[gui.Button("Exit", size=(14, 1), image_filename='images/exit.png',
+                                    mouseover_colors=('#CBCBCB', '#333333'))]], border_width=0)],
+        [gui.Text("", size=(50, 1), key="-ERROR-TEXT-")],
     ]
 
     layout = [
@@ -122,6 +133,8 @@ def show_gui():
         main.icon_file = 'images/icon.ico'
     else:
         main.icon_file = 'images/icon.png'
+
+
 
     # getting the window
     window = gui.Window("EZ Folder Backup", layout, icon=main.icon_file)
@@ -168,7 +181,6 @@ def show_gui():
                 if not question_box("Backup files for preset '" + str(values["-CURRENT-PRESET-NAME-"]) + "'?\n" +
                         "(Files that no longer exist in the Main Folder will be trashed)", 80, 15):
                     continue
-                set_loading_bar_visible(window, True)
                 main.run_backup(window, values["-MAIN-FOLDER-"], use_backup_folders)
             else:
                 window["-ERROR-TEXT-"].update("You must set the main drive and at least one backup drive")
@@ -237,7 +249,6 @@ def set_loading_bar_visible(window, value):
     window["-BAR-"].update(visible=value)
     window[" "].update(visible=value)
     # window["Cancel"].update(visible=value)
-
 
 
 def refresh_presets_list(window, presets):
@@ -475,4 +486,3 @@ def create_help_file():
     with open("help.txt", "w",
               encoding="utf-8") as f:
         f.write(help_file_text)
-

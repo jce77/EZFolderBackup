@@ -1,12 +1,9 @@
-import math
 import shutil
 from os.path import exists
 from scripts import ui
 from scripts import logging
 import os
 import datetime
-import threading
-
 from send2trash import send2trash
 
 skip_files = []
@@ -95,6 +92,7 @@ def end_refresh_window_thread():
 def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_of_files_to_backup, backup_directory,
                                        using_windows):
     """ Ensures the input backup_directory is a clone of the main """
+    ui.set_loading_bar_visible(window, True)
     window["-BAR-"].update(0)
     progress_count = 0
     files_to_process = 0
@@ -124,10 +122,22 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
     if use_graphics:
         window_update_count = 0
 
-    # checking that the target drive has enough space ==============================================
-    path = main_folder[0:2]
+    # getting free space left on this drive ==============================================
+    path = 0
+    if using_windows:
+        path = main_folder[0:2]
+    else:
+        slash_count = 0
+        for i in range(len(main_folder)):
+            if main_folder[i] == "/" or main_folder[i] == "\\":
+                slash_count += 1
+            if slash_count == 2:
+                path = main_folder[0:i + 1]
+
     total, used, free = shutil.disk_usage(path)
-    target_drive_free_space = free // (2 ** 30)
+    # target_drive_free_space = free // (2 ** 30)  # put it into GB
+    target_drive_free_space = free
+    new_space_used = 0  # the new space being used by operations
 
     # settings for window refreshing
     refresh_ticks = 10
@@ -178,7 +188,6 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
         if event != '__TIMEOUT__':
             if ui.question_box("Cancel backup operation?\n", 80, 15):
                 ui.set_loading_bar_visible(window, False)
-                end_refresh_window_thread()
                 return "BACKUP CANCELLED"
     # -----------------------------------------------------
 
@@ -203,7 +212,6 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
         if event != '__TIMEOUT__':
             if ui.question_box("Cancel backup operation?\n", 80, 15):
                 ui.set_loading_bar_visible(window, False)
-                end_refresh_window_thread()
                 return "BACKUP CANCELLED"
     # -----------------------------------------------------
 
@@ -259,7 +267,6 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
                     if event != '__TIMEOUT__':
                         if ui.question_box("Cancel backup operation?\n", 80, 15):
                             ui.set_loading_bar_visible(window, False)
-                            end_refresh_window_thread()
                             return "BACKUP CANCELLED"
                 # -----------------------------------------------------
 
@@ -289,6 +296,9 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
         progress_count += 1
         window["-BAR-"].update(progress_count / files_to_process)
 
+        # removing from new_space_used since deleting creates more space
+        new_space_used -= del_files[i].size
+
         # ------ refreshing the window and checking for events
         if use_graphics:
             # do event check here
@@ -297,7 +307,6 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
             if event != '__TIMEOUT__':
                 if ui.question_box("Cancel backup operation?\n", 80, 15):
                     ui.set_loading_bar_visible(window, False)
-                    end_refresh_window_thread()
                     return "BACKUP CANCELLED"
         # -----------------------------------------------------
 
@@ -311,7 +320,6 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
             if event != '__TIMEOUT__':
                 if ui.question_box("Cancel backup operation?\n", 80, 15):
                     ui.set_loading_bar_visible(window, False)
-                    end_refresh_window_thread()
                     return "BACKUP CANCELLED"
         # -----------------------------------------------------
         # copy the file over if its not found
@@ -323,6 +331,16 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
                                           str(ui.format_text_for_gui_display(file_name)))
             window.refresh()
         assure_path_exists(path_to_file(new_files[i].target_path))
+
+        # REMOVED FOR NOW, IT IS NOT WORKING PROPERLY
+        # ensuring there is enough space on the target drive for this operation
+        # new_space_used += new_files[i].size
+        # if new_space_used > target_drive_free_space:
+        #     logging.log_file += "<<< Backup Cancelled, Insufficient Drive Space >>>\n\n"
+        #     if use_graphics:
+        #         window["-ERROR-TEXT-"].update("Cancelled, Insufficient Drive Space")
+
+        # copying the file
         if using_windows:
             shutil.copyfile(new_files[i].source_path, new_files[i].target_path)
         else:

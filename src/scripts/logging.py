@@ -1,6 +1,7 @@
 from os.path import exists
 import os
 from datetime import datetime
+
 no_logging = False  # If true no log files will be created, False by default
 log_file = ""
 log_file_max_count = 50  # starts deleting the oldest file once 50 logs exist
