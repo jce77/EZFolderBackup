@@ -1,8 +1,10 @@
 """
-EZ Folder Backup v1.0.6
+EZ Folder Backup v1.0.7
 
-Update v1.0.6
-- Now files get moved instead of just copied and deleted, greatly reducing backup time in some cases
+Update v1.0.7
+- Fixed a problem with the GUI not properly showing the current operation
+- Added a loading bar for backup operations
+- Added a cancel button for backup operations that pauses and prompts further confirmation
 
 A simple local backup application that runs on Windows and Linux
 

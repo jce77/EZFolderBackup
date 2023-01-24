@@ -17,19 +17,20 @@ main_folder = ""
 
 presets = {}
 icon_file = ""
-version = "1.0.6"
+version = "1.0.7"
 using_windows = False
 
 
 def run_backup(window, main_folder, backup_folders):
     """ Ensures the input backup_folders are all exact clones of the input main_folder """
-    use_graphics = type(window) != int
+    # use_graphics = type(window) != int
     global using_windows
     logging.log_file = "Backup Log For Main Folder:\n"
     logging.log_file += main_folder + "\n\n"
     if not exists(main_folder):
-        if use_graphics:
+        if ui.using_gui:
             window["-ERROR-TEXT-"].update("The main folder was not found")
+            window.refresh()
             logging.log_file += "The main folder was not found\n"
             logging.print_to_log("Main_Not_Found", logging.log_file)
             return
@@ -43,15 +44,17 @@ def run_backup(window, main_folder, backup_folders):
     error_msg = ""
     response = ""
     for backup_directory in backup_folders:
-        response = files.copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_of_files,
+        response = files.copy_from_main_to_backup_directory(ui.using_gui, window, main_folder, list_of_files,
                                                             backup_directory, using_windows)
+        window["-BAR-"].update(0)
         if "NOT FOUND" in response:
             error_msg = response
-    if use_graphics:
+    if ui.using_gui:
         if error_msg == "":
             window["-ERROR-TEXT-"].update(response)
         else:
             window["-ERROR-TEXT-"].update(error_msg)
+        window.refresh()
     # debug log
     logging.print_to_log("Backup", logging.log_file)
 
@@ -218,6 +221,7 @@ def run_commands(commands):
 
 def start():
     global using_windows
+    global clicked_cancel_button
     using_windows = False
     if 'win32' in platform or 'win64' in platform:
         using_windows = True

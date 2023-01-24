@@ -39,6 +39,8 @@ def show_gui():
     for key in main.presets:
         preset_keys.append(str(key))
 
+    BAR_MAX = 1
+
     left_column = [
         [
             gui.Text("Main Folder:"),
@@ -58,7 +60,9 @@ def show_gui():
                         button_color=(gui.theme_background_color(), gui.theme_background_color()), ),
              gui.Button(key='Move Down', image_filename='images/down_arrow.png', image_size=(48, 48),
                         border_width=0,
-                        button_color=(gui.theme_background_color(), gui.theme_background_color()), )
+                        button_color=(gui.theme_background_color(), gui.theme_background_color()), ),
+             gui.ProgressBar(BAR_MAX, orientation='h', size=(12.3, 31.5), key='-BAR-', visible=False),
+             gui.Button(" ", size=(14, 1), image_filename='images/cancel.png', visible=False)
              ]], title_color='yellow', border_width=0)],
     ]
 
@@ -119,8 +123,8 @@ def show_gui():
     else:
         main.icon_file = 'images/icon.png'
 
+    # getting the window
     window = gui.Window("EZ Folder Backup", layout, icon=main.icon_file)
-
     while True:
         event, values = window.read()
         window["-ERROR-TEXT-"].update("")
@@ -164,7 +168,7 @@ def show_gui():
                 if not question_box("Backup files for preset '" + str(values["-CURRENT-PRESET-NAME-"]) + "'?\n" +
                         "(Files that no longer exist in the Main Folder will be trashed)", 80, 15):
                     continue
-                window["-ERROR-TEXT-"].update("Checking for files to copy... ")
+                set_loading_bar_visible(window, True)
                 main.run_backup(window, values["-MAIN-FOLDER-"], use_backup_folders)
             else:
                 window["-ERROR-TEXT-"].update("You must set the main drive and at least one backup drive")
@@ -227,6 +231,13 @@ def show_gui():
                     pass
         # ==============================================
     window.close()
+
+
+def set_loading_bar_visible(window, value):
+    window["-BAR-"].update(visible=value)
+    window[" "].update(visible=value)
+    # window["Cancel"].update(visible=value)
+
 
 
 def refresh_presets_list(window, presets):
