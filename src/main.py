@@ -1,10 +1,9 @@
 """
-EZ Folder Backup v1.0.8
+EZ Folder Backup v1.0.9
 
-Update v1.0.8
-- Fixed a problem where loading bar only showed up for the first backup
-- Changed up/down arrows color
-- Changed theme and button press colors
+Update v1.0.9
+- Fixed errors for command-line linux use related to accidentally running graphics functions
+- Overflow deleted log files are now recycled instead of wiped
 
 A simple local backup application that runs on Windows and Linux
 

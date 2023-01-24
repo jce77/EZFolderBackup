@@ -17,7 +17,7 @@ main_folder = ""
 
 presets = {}
 icon_file = ""
-version = "1.0.8"
+version = "1.0.9"
 using_windows = False
 
 
@@ -46,7 +46,6 @@ def run_backup(window, main_folder, backup_folders):
     for backup_directory in backup_folders:
         response = files.copy_from_main_to_backup_directory(ui.using_gui, window, main_folder, list_of_files,
                                                             backup_directory, using_windows)
-        window["-BAR-"].update(0)
         if "NOT FOUND" in response:
             error_msg = response
         elif "BACKUP CANCELLED" in response:

@@ -92,12 +92,12 @@ def end_refresh_window_thread():
 def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_of_files_to_backup, backup_directory,
                                        using_windows):
     """ Ensures the input backup_directory is a clone of the main """
-    ui.set_loading_bar_visible(window, True)
-    window["-BAR-"].update(0)
     progress_count = 0
     files_to_process = 0
 
     if use_graphics:
+        window["-BAR-"].update(0)
+        ui.set_loading_bar_visible(window, True)
         window["-ERROR-TEXT-"].update("Checking for files to copy... ")
         window.refresh()
     if not using_windows:
@@ -144,9 +144,7 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
     tick_count = 0
 
     #  getting every new file that needs to be put in this location ================================
-    print("DEBUG getting every new file that needs to be put in this location")
     new_files = []
-    print(str(len(list_of_files_to_backup)) + " files to check")
     for file in list_of_files_to_backup:
         if get_filename(file) in skip_files:
             print("skipping file: " + get_filename(file))
@@ -357,8 +355,8 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
     #  doing all copies ===================================================================================
     print("<<< Backup Successful >>>")
     logging.log_file += "<<< Backup Successful >>>\n\n"
-
-    ui.set_loading_bar_visible(window, False)
+    if use_graphics:
+        ui.set_loading_bar_visible(window, False)
     return "BACKUP SUCCESSFUL"
 
 
