@@ -137,8 +137,6 @@ def show_gui():
     else:
         main.icon_file = 'images/icon.png'
 
-
-
     # getting the window
     window = gui.Window("EZ Folder Backup", layout, icon=main.icon_file)
     while True:
@@ -170,14 +168,18 @@ def show_gui():
                 window["-ERROR-TEXT-"].update("Check console")
         elif event == "Move Up":
             if len(main.presets) > 0:
-                main.presets = files.move_index_in_dict(main.presets, values["-CURRENT-PRESET-NAME-"], True)
+                preset_name = values["-CURRENT-PRESET-NAME-"]
+                main.presets = files.move_index_in_dict(main.presets, preset_name, True)
                 saving.save_presets_to_config(main.presets)
                 refresh_presets_list(window, main.presets)
+                window["-PRESET LIST-"].set_value(preset_name)
         elif event == "Move Down":
             if len(main.presets) > 0:
-                main.presets = files.move_index_in_dict(main.presets, values["-CURRENT-PRESET-NAME-"], False)
+                preset_name = values["-CURRENT-PRESET-NAME-"]
+                main.presets = files.move_index_in_dict(main.presets, preset_name, False)
                 saving.save_presets_to_config(main.presets)
                 refresh_presets_list(window, main.presets)
+                window["-PRESET LIST-"].set_value(preset_name)
         elif event == "Run Backup":
             use_backup_folders = get_backup_folders_from_gui(values)
             if files.valid_input_for_backup(values):

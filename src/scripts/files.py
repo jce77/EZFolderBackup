@@ -235,15 +235,12 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
 
                 # logging the event
                 # copy the file over if its not found
-
-                print(
-                    "  '" + get_filename(new_files[i].target_path) + "' has been moved to " + new_files[i].target_path)
-                logging.log_file += "  '" + get_filename(new_files[i].target_path) + \
-                                    "' has been moved to " + new_files[i].target_path + "\n"
+                msg = "  Moving: '" + get_filename(new_files[i].target_path) + "'"
+                print(msg)
+                logging.log_file += msg + "\n    to path: '" + new_files[i].target_path + "'\n"
                 backup_location = backup_directory + file
                 if use_graphics:
-                    window["-ERROR-TEXT-"].update(
-                        "Moving file: " + str(ui.format_text_for_gui_display(get_filename(new_files[i].target_path))))
+                    window["-ERROR-TEXT-"].update(str(ui.format_text_for_gui_display(msg)))
                     window.refresh()
                 assure_path_exists(path_to_file(backup_location))
                 if using_windows:
@@ -277,19 +274,17 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
     # region 5. DOING DELETE OPERATIONS ================================================================================
     for i in range(len(del_files)):
         file_name = get_filename(del_files[i].target_path)
+        msg = ""
         if using_windows:
-            print("  '" + file_name + "' is not in main folder, sending to Recycle Bin")
-            logging.log_file += "  '" + file_name + \
-                                "' is not in main folder, sending to Recycle Bin\n"
+            msg += "  Recycling: '" + file_name + "'"
         else:
-            print("  '" + file_name + "' is not in main folder, sending to Trash")
-            logging.log_file += "  '" + file_name + \
-                                "' is not in main folder, sending to Trash\n"
+            msg += "  Trashing: '" + file_name + "'"
+        print(msg)
+        logging.log_file += msg + "\n    from path: '" + del_files[i].target_path + "'\n"
         if use_graphics:
-            window["-ERROR-TEXT-"].update(
-                "Trashing " + str(ui.format_text_for_gui_display(file_name)))
+            window["-ERROR-TEXT-"].update(str(ui.format_text_for_gui_display(msg)))
             window.refresh()
-            # os.remove(backup_directory + file_in_backup) # old method that fully deletes file instantly
+        # os.remove(backup_directory + file_in_backup) # old method that fully deletes file instantly
         send2trash(del_files[i].target_path)
         # deleting folder if its empty now
         delete_directory_if_empty(del_files[i].target_path)
@@ -329,11 +324,11 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
         # -----------------------------------------------------
         # copy the file over if its not found
         file_name = get_filename(new_files[i].target_path)
-        print("  '" + file_name + "' not found, copying to this backup directory")
-        logging.log_file += "  '" + file_name + "' not found, copying to this backup directory\n"
+        msg = "  Copying: '" + file_name + "'"
+        print(msg)
+        logging.log_file += msg + "\n    to path: '" + new_files[i].target_path + "'\n"
         if use_graphics:
-            window["-ERROR-TEXT-"].update("Copying to " +
-                                          str(ui.format_text_for_gui_display(file_name)))
+            window["-ERROR-TEXT-"].update(str(ui.format_text_for_gui_display(msg)))
             window.refresh()
         assure_path_exists(path_to_file(new_files[i].target_path))
 

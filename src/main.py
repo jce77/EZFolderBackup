@@ -1,9 +1,9 @@
 """
-EZ Folder Backup v1.1.0
+EZ Folder Backup v1.1.1
 
-Update v1.1.0
-- Fixed a crash, backup now cancels if the next file to copy is larger than the drive space left
-- Changed heading text and font
+Update v1.1.1
+- Fixed arrow buttons so the preset stays highlighted as you move it
+- Changed all the log, print and GUI feedback messages to be easier to read
 
 A simple local backup application that runs on Windows and Linux
 
