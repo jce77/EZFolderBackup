@@ -1,9 +1,9 @@
 """
-EZ Folder Backup v1.0.9
+EZ Folder Backup v1.1.0
 
-Update v1.0.9
-- Fixed errors for command-line linux use related to accidentally running graphics functions
-- Overflow deleted log files are now recycled instead of wiped
+Update v1.1.0
+- Fixed a crash, backup now cancels if the next file to copy is larger than the drive space left
+- Changed heading text and font
 
 A simple local backup application that runs on Windows and Linux
 

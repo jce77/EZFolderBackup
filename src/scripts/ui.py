@@ -43,6 +43,9 @@ def show_gui():
     gui.theme('DarkGrey')
     gui.theme_button_color('#7A7A7A')
 
+    h1_font = ("Arial Bold", 12)
+    h2_font = ("Arial Bold", 10)
+
     left_column = [
         [
             gui.Text("Main Folder:"),
@@ -50,7 +53,7 @@ def show_gui():
             gui.FolderBrowse(),
         ],
         [
-            gui.Text("Backup Presets:"),
+            gui.Text("Backup Presets", font=h1_font),
         ],
         [
             gui.Listbox(
@@ -69,7 +72,7 @@ def show_gui():
     ]
 
     right_column = [
-        [gui.Text("Backup Locations:")],
+        [gui.Text("Backup Locations", font=h1_font)],
         [
             gui.Text("Backup 1:"),
             gui.In(size=(25, 1), enable_events=True, key="-BACKUP1-"),
@@ -95,7 +98,7 @@ def show_gui():
             gui.In(size=(25, 1), enable_events=True, key="-BACKUP5-"),
             gui.FolderBrowse(),
         ],
-        [gui.Text("Backup Preset Name:")],
+        [gui.Text("Preset Name", font=h2_font)],
         [gui.In(size=(25, 1), enable_events=True, key="-CURRENT-PRESET-NAME-")],
 
         [gui.Frame('Backup Preset', [[gui.Button("New", size=(14, 1), image_filename='images/new_preset.png',

@@ -98,7 +98,7 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
     if use_graphics:
         window["-BAR-"].update(0)
         ui.set_loading_bar_visible(window, True)
-        window["-ERROR-TEXT-"].update("Checking for files to copy... ")
+        window["-ERROR-TEXT-"].update("Calculating backup... ")
         window.refresh()
     if not using_windows:
         backup_directory = backup_directory.replace("\\", "/")
@@ -119,10 +119,8 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
     files_in_backup_directory = get_all_filenames(backup_directory)
     # formatting names
     files_in_backup_directory = remove_path_to_root_folder_from_each(backup_directory, files_in_backup_directory)
-    if use_graphics:
-        window_update_count = 0
 
-    # getting free space left on this drive ==============================================
+    # region 1. Getting free space left on this drive ==============================================
     path = 0
     if using_windows:
         path = main_folder[0:2]
@@ -135,15 +133,16 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
                 path = main_folder[0:i + 1]
 
     total, used, free = shutil.disk_usage(path)
-    # target_drive_free_space = free // (2 ** 30)  # put it into GB
     target_drive_free_space = free
     new_space_used = 0  # the new space being used by operations
+    # print("target_drive_free_space=" + str(target_drive_free_space // (2 ** 30)) + "GB")
 
     # settings for window refreshing
     refresh_ticks = 10
     tick_count = 0
+    # endregion
 
-    #  getting every new file that needs to be put in this location ================================
+    # region 2. Getting every new file that needs to be put in this location ================================
     new_files = []
     for file in list_of_files_to_backup:
         if get_filename(file) in skip_files:
@@ -188,8 +187,9 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
                 ui.set_loading_bar_visible(window, False)
                 return "BACKUP CANCELLED"
     # -----------------------------------------------------
+    # endregion
 
-    #  getting every old file that needs to be removed from its location ================================
+    # region 3. Getting every old file that needs to be removed from its location ================================
     del_files = []
     for i in range(len(files_in_backup_directory)):
         # print("checking " + str(files_in_backup_directory[i]))
@@ -214,8 +214,9 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
     # -----------------------------------------------------
 
     files_to_process = len(new_files) + len(del_files)
+    # endregion
 
-    #  DOING MOVE OPERATIONS ==================================================================================
+    # region 4. DOING MOVE OPERATIONS ==================================================================================
     # iterating backwards since things need to be deleted from new_files and del_files possibly
     for i in range(len(new_files) - 1, -1, -1):
         for j in range(len(del_files) - 1, -1, -1):
@@ -229,12 +230,14 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
                 if using_windows:
                     shutil.move(del_files[j].target_path, new_files[i].target_path)
                 else:
-                    shutil.move(del_files[j].target_path.replace("\\", "/"), new_files[i].target_path.replace("\\", "/"))
+                    shutil.move(del_files[j].target_path.replace("\\", "/"),
+                                new_files[i].target_path.replace("\\", "/"))
 
                 # logging the event
                 # copy the file over if its not found
 
-                print("  '" + get_filename(new_files[i].target_path) + "' has been moved to " + new_files[i].target_path)
+                print(
+                    "  '" + get_filename(new_files[i].target_path) + "' has been moved to " + new_files[i].target_path)
                 logging.log_file += "  '" + get_filename(new_files[i].target_path) + \
                                     "' has been moved to " + new_files[i].target_path + "\n"
                 backup_location = backup_directory + file
@@ -269,17 +272,18 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
                 # -----------------------------------------------------
 
                 break
+    # endregion
 
-    #  DOING DELETE OPERATIONS ==================================================================================
+    # region 5. DOING DELETE OPERATIONS ================================================================================
     for i in range(len(del_files)):
         file_name = get_filename(del_files[i].target_path)
         if using_windows:
             print("  '" + file_name + "' is not in main folder, sending to Recycle Bin")
-            logging.log_file += "  '" + file_name +\
+            logging.log_file += "  '" + file_name + \
                                 "' is not in main folder, sending to Recycle Bin\n"
         else:
             print("  '" + file_name + "' is not in main folder, sending to Trash")
-            logging.log_file += "  '" + file_name +\
+            logging.log_file += "  '" + file_name + \
                                 "' is not in main folder, sending to Trash\n"
         if use_graphics:
             window["-ERROR-TEXT-"].update(
@@ -296,6 +300,8 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
 
         # removing from new_space_used since deleting creates more space
         new_space_used -= del_files[i].size
+        # print(" SPACE LEFT=" + str((target_drive_free_space - new_space_used) // (2 ** 30)) +
+        #       "GB left")
 
         # ------ refreshing the window and checking for events
         if use_graphics:
@@ -307,8 +313,9 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
                     ui.set_loading_bar_visible(window, False)
                     return "BACKUP CANCELLED"
         # -----------------------------------------------------
+    # endregion
 
-    #  DOING COPY OPERATIONS ==================================================================================
+    # region 6. DOING COPY OPERATIONS ==================================================================================
     for i in range(len(new_files)):
         # ------ refreshing the window and checking for events
         if use_graphics:
@@ -332,11 +339,15 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
 
         # REMOVED FOR NOW, IT IS NOT WORKING PROPERLY
         # ensuring there is enough space on the target drive for this operation
-        # new_space_used += new_files[i].size
-        # if new_space_used > target_drive_free_space:
-        #     logging.log_file += "<<< Backup Cancelled, Insufficient Drive Space >>>\n\n"
-        #     if use_graphics:
-        #         window["-ERROR-TEXT-"].update("Cancelled, Insufficient Drive Space")
+        new_space_used += new_files[i].size
+        # print("SPACE LEFT=" + str((target_drive_free_space - new_space_used) // (2 ** 30)) +
+        #       "GB left")
+        # print("new_space_used > target_drive_free_space? " + str(new_space_used > target_drive_free_space))
+        if new_space_used > target_drive_free_space:
+            # print("NOT ENOUGH SPACE")
+            ui.set_loading_bar_visible(window, False)
+            # log messages done after message is returned
+            return "INSUFFICIENT SPACE"
 
         # copying the file
         if using_windows:
@@ -347,17 +358,15 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
         # loading bar stuff
         progress_count += 1
         window["-BAR-"].update(progress_count / files_to_process)
+    # endregion
 
-    # i probably want to change the objects to hold both the file name and directory separately or else it will be a
-    # crap ton of extra computations. but i should definitely get some rest now.
-
-    #  doing all deletions ================================================================================
-    #  doing all copies ===================================================================================
+    # region 7. Backup Successful, returning
     print("<<< Backup Successful >>>")
     logging.log_file += "<<< Backup Successful >>>\n\n"
     if use_graphics:
         ui.set_loading_bar_visible(window, False)
     return "BACKUP SUCCESSFUL"
+    # endregion
 
 
 def delete_directory_if_empty(file_path):
@@ -368,6 +377,7 @@ def delete_directory_if_empty(file_path):
         print("  Deleting the folder since its empty now")
         logging.log_file += "  Deleting the folder since its empty now\n";
         os.rmdir(directory_of_this)
+
 
 def assure_path_exists(path):
     """ Assures this path exists, and makes the path if it does not exist """

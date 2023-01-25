@@ -17,7 +17,7 @@ main_folder = ""
 
 presets = {}
 icon_file = ""
-version = "1.0.9"
+version = "1.1.0"
 using_windows = False
 
 
@@ -49,9 +49,18 @@ def run_backup(window, main_folder, backup_folders):
         if "NOT FOUND" in response:
             error_msg = response
         elif "BACKUP CANCELLED" in response:
-            window["-ERROR-TEXT-"].update("Backup Cancelled")
+            if ui.using_gui:
+                window["-ERROR-TEXT-"].update("Backup Cancelled")
             print("Backup Cancelled")
             logging.log_file += "\n-------------------------------\nBackup Cancelled\n-------------------------------"
+            logging.print_to_log("Backup", logging.log_file)
+            return
+        elif "INSUFFICIENT SPACE" in response:
+            if ui.using_gui:
+                window["-ERROR-TEXT-"].update("Cancelled, Insufficient Space for: " + str(backup_directory))
+            print("Backup Cancelled, Insufficient Space inside: " + str(backup_directory))
+            logging.log_file += "\n\nInsufficient Space inside: " + str(backup_directory)
+            logging.log_file += "\n--------------------\nBackup Cancelled\n--------------------------------"
             logging.print_to_log("Backup", logging.log_file)
             return
     if ui.using_gui:
