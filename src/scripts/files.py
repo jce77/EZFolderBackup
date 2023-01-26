@@ -202,12 +202,12 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
                 del new_files[i]
                 del del_files[j]
 
-                # loading bar stuff
-                progress_count += 2
-                window["-BAR-"].update(progress_count / files_to_process)
-
-                # ------ refreshing the window and checking for events
+                # ------ checking for events and updating loading bar
                 if use_graphics:
+                    # loading bar stuff
+                    progress_count += 2
+                    window["-BAR-"].update(progress_count / files_to_process)
+
                     # do event check here
                     event, values = window.read(timeout=0)
                     # if any input event in detected, open window to ask about cancelling
