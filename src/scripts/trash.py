@@ -25,7 +25,7 @@ def start(using_gui, using_windows):
         # finding trash folders, otherwise ending the program if they are not found
         return find_trash_folder()
     else:
-        return "Success"
+        return "Passed"
 
 
 def get_all_foldernames(path):
@@ -99,7 +99,7 @@ def trash_file(path):
         info_msg = "[Trash Info]\n"
         info_msg += "Path=" + path + "\n"
         current_datetime = datetime.now()
-        info_msg += "DeletionData=" + current_datetime.strftime("%Y-%m-%dT%H:%M:%S")
+        info_msg += "DeletionDate=" + current_datetime.strftime("%Y-%m-%dT%H:%M:%S")
         with open(trash_info_path, "w") as file:
             file.write(info_msg + ".trashinfo")
             file.close
