@@ -238,10 +238,6 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
         # deleting folder if its empty now
         delete_directory_if_empty(del_files[i].target_path)
 
-        # loading bar stuff
-        progress_count += 1
-        window["-BAR-"].update(progress_count / files_to_process)
-
         # removing from new_space_used since deleting creates more space
         new_space_used -= del_files[i].size
         # print(" SPACE LEFT=" + str((target_drive_free_space - new_space_used) // (2 ** 30)) +
@@ -249,6 +245,9 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
 
         # ------ refreshing the window and checking for events
         if use_graphics:
+            # loading bar stuff
+            progress_count += 1
+            window["-BAR-"].update(progress_count / files_to_process)
             # do event check here
             event, values = window.read(timeout=0)
             # if any input event in detected, open window to ask about cancelling
@@ -298,10 +297,10 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
             shutil.copyfile(new_files[i].source_path, new_files[i].target_path)
         else:
             shutil.copyfile(new_files[i].source_path.replace("\\", "/"), new_files[i].target_path.replace("\\", "/"))
-
-        # loading bar stuff
-        progress_count += 1
-        window["-BAR-"].update(progress_count / files_to_process)
+        if use_graphics:
+            # loading bar stuff
+            progress_count += 1
+            window["-BAR-"].update(progress_count / files_to_process)
     # endregion
 
     # region 7. Backup Successful, returning
