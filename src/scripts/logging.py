@@ -1,7 +1,7 @@
 from os.path import exists
 import os
 from datetime import datetime
-from send2trash import send2trash
+from scripts import trash
 
 no_logging = False  # If true no log files will be created, False by default
 log_file = ""
@@ -22,7 +22,7 @@ def check_for_log_file_limit():
                 oldest_file = file
         print("Deleted oldest log file: " + oldest_file)
         # os.remove("log/" + oldest_file)
-        send2trash("log/" + oldest_file)
+        trash.trash_file("log/" + oldest_file)
 
 
 def get_last_log_file_path():

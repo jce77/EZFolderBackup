@@ -3,6 +3,7 @@ from scripts import ui
 from scripts import saving
 from scripts import logging
 from scripts import files
+from scripts import trash
 import sys
 from sys import platform
 from os.path import exists
@@ -17,7 +18,7 @@ main_folder = ""
 
 presets = {}
 icon_file = ""
-version = "1.1.1"
+version = "1.1.2"
 using_windows = False
 
 
@@ -244,6 +245,12 @@ def start():
         ui.using_gui = True
     if not exists("EULA.txt"):
         eula.agreed_to_eula(False)
+    # start trash script, otherwise stop if failed
+    msg = trash.start(ui.using_gui, using_windows)
+    if msg != "Passed":
+        print(msg)
+        logging.print_to_log("Failed_To_Run", msg)
+        return
     # Running with graphics
     if ui.using_gui:
         if not eula.eula_agreed_to():
