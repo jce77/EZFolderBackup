@@ -8,7 +8,7 @@ import os
 
 try:
     import PySimpleGUI as gui
-except:
+except ModuleNotFoundError:
     pass
 
 using_gui = False

@@ -1,46 +1,19 @@
+# region 1. Imports and Variables
 import shutil
 from os.path import exists
 from scripts import ui
 from scripts import logging
 import os
 import datetime
-from send2trash import send2trash
+from scripts import trash
 
 skip_files = []
 skip_folders = []
 
 
-def backup_file(file_name):
-    """ If the file exists its backed up ending with .old """
-    if exists(file_name):
-        shutil.copyfile(file_name, file_name + '.old')
+# endregion
 
-
-def get_all_filenames(path):
-    """ Returns all filenames inside the given path and its sub-folders """
-    global skip_folders
-    list_of_files = []
-    for dname, dirs, files in os.walk(path):
-        dirs[:] = [d for d in dirs if d not in skip_folders]
-        for fname in files:
-            list_of_files.append(os.path.join(dname, fname))
-    return list_of_files
-
-
-def get_file_size(path):
-    return os.path.getsize(path)
-
-
-def get_filename(full_path):
-    """ Returns the filename only without the path """
-    return os.path.basename(full_path)
-
-
-def path_to_file(full_path):
-    """ Returns path without file name """
-    return full_path[0:len(full_path) - len(get_filename(full_path))]
-
-
+# region 2. Data Types
 class NewFile:
     """ A file that needs to be added to a location, either copied or moved """
 
@@ -62,33 +35,9 @@ class DelFile:
         self.date = date
 
 
-def get_date(path):
-    return datetime.datetime.fromtimestamp(os.path.getmtime(path))
+# endregion
 
-
-# shared resource
-# clicked_cancel_button = False
-# shared_event = ""
-backup_process_complete = False  # lets the loading thread know to stop refreshing the window every time the % goes up 1
-
-
-def refresh_window_thread(window):
-    print("refresh_window_thread THREAD STARTED")
-    # global shared_event
-    global backup_process_complete
-    # global clicked_cancel_button
-    backup_process_complete = False
-    # clicked_cancel_button = False
-    while not backup_process_complete:
-        window.refresh()
-    print("refresh_window_thread THREAD ENDED")
-
-
-def end_refresh_window_thread():
-    global backup_process_complete
-    backup_process_complete = True
-
-
+# region 3. Backup Function
 def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_of_files_to_backup, backup_directory,
                                        using_windows):
     """ Ensures the input backup_directory is a clone of the main """
@@ -232,12 +181,11 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
                 else:
                     shutil.move(del_files[j].target_path.replace("\\", "/"),
                                 new_files[i].target_path.replace("\\", "/"))
-
-                # logging the event
-                # copy the file over if its not found
+                # --------------------------------------------------- logging
                 msg = "  Moving: '" + get_filename(new_files[i].target_path) + "'"
                 print(msg)
                 logging.log_file += msg + "\n    to path: '" + new_files[i].target_path + "'\n"
+                # -------------------------------------------------------------
                 backup_location = backup_directory + file
                 if use_graphics:
                     window["-ERROR-TEXT-"].update(str(ui.format_text_for_gui_display(msg)))
@@ -249,16 +197,17 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
                     shutil.copyfile(main_folder + file, backup_location.replace("\\", "/"))
                 # deleting folder if its empty now
                 delete_directory_if_empty(del_files[j].target_path)
+
                 # deleting these items from the copy and delete lists, important to do this last
                 del new_files[i]
                 del del_files[j]
 
-                # loading bar stuff
-                progress_count += 2
-                window["-BAR-"].update(progress_count / files_to_process)
-
-                # ------ refreshing the window and checking for events
+                # ------ checking for events and updating loading bar
                 if use_graphics:
+                    # loading bar stuff
+                    progress_count += 2
+                    window["-BAR-"].update(progress_count / files_to_process)
+
                     # do event check here
                     event, values = window.read(timeout=0)
                     # if any input event in detected, open window to ask about cancelling
@@ -285,13 +234,9 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
             window["-ERROR-TEXT-"].update(str(ui.format_text_for_gui_display(msg)))
             window.refresh()
         # os.remove(backup_directory + file_in_backup) # old method that fully deletes file instantly
-        send2trash(del_files[i].target_path)
+        trash.trash_file(del_files[i].target_path)
         # deleting folder if its empty now
         delete_directory_if_empty(del_files[i].target_path)
-
-        # loading bar stuff
-        progress_count += 1
-        window["-BAR-"].update(progress_count / files_to_process)
 
         # removing from new_space_used since deleting creates more space
         new_space_used -= del_files[i].size
@@ -300,6 +245,9 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
 
         # ------ refreshing the window and checking for events
         if use_graphics:
+            # loading bar stuff
+            progress_count += 1
+            window["-BAR-"].update(progress_count / files_to_process)
             # do event check here
             event, values = window.read(timeout=0)
             # if any input event in detected, open window to ask about cancelling
@@ -349,10 +297,10 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
             shutil.copyfile(new_files[i].source_path, new_files[i].target_path)
         else:
             shutil.copyfile(new_files[i].source_path.replace("\\", "/"), new_files[i].target_path.replace("\\", "/"))
-
-        # loading bar stuff
-        progress_count += 1
-        window["-BAR-"].update(progress_count / files_to_process)
+        if use_graphics:
+            # loading bar stuff
+            progress_count += 1
+            window["-BAR-"].update(progress_count / files_to_process)
     # endregion
 
     # region 7. Backup Successful, returning
@@ -361,7 +309,75 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
     if use_graphics:
         ui.set_loading_bar_visible(window, False)
     return "BACKUP SUCCESSFUL"
+
+
     # endregion
+
+
+# endregion
+
+# region 4. Other Functions
+
+def backup_file(file_name):
+    """ If the file exists its backed up ending with .old """
+    if exists(file_name):
+        shutil.copyfile(file_name, file_name + '.old')
+
+
+def get_all_foldernames(path):
+    return [d for d in os.listdir(path) if os.path.isdir(os.path.join(path, d))]
+
+
+def get_all_filenames(path):
+    """ Returns all filenames inside the given path and its sub-folders """
+    global skip_folders
+    list_of_files = []
+    for dname, dirs, files in os.walk(path):
+        dirs[:] = [d for d in dirs if d not in skip_folders]
+        for fname in files:
+            list_of_files.append(os.path.join(dname, fname))
+    return list_of_files
+
+
+def get_file_size(path):
+    return os.path.getsize(path)
+
+
+def get_filename(full_path):
+    """ Returns the filename only without the path """
+    return os.path.basename(full_path)
+
+
+def path_to_file(full_path):
+    """ Returns path without file name """
+    return full_path[0:len(full_path) - len(get_filename(full_path))]
+
+
+def get_date(path):
+    return datetime.datetime.fromtimestamp(os.path.getmtime(path))
+
+
+# shared resource
+# clicked_cancel_button = False
+# shared_event = ""
+backup_process_complete = False  # lets the loading thread know to stop refreshing the window every time the % goes up 1
+
+
+def refresh_window_thread(window):
+    print("refresh_window_thread THREAD STARTED")
+    # global shared_event
+    global backup_process_complete
+    # global clicked_cancel_button
+    backup_process_complete = False
+    # clicked_cancel_button = False
+    while not backup_process_complete:
+        window.refresh()
+    print("refresh_window_thread THREAD ENDED")
+
+
+def end_refresh_window_thread():
+    global backup_process_complete
+    backup_process_complete = True
 
 
 def delete_directory_if_empty(file_path):
@@ -430,3 +446,5 @@ def move_index_in_dict(list, dict_key, moving_upwards):
     for tuple in values:
         new_dict[tuple[0]] = tuple[1]
     return new_dict
+
+# endregion

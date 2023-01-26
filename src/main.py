@@ -1,9 +1,9 @@
 """
-EZ Folder Backup v1.1.1
+EZ Folder Backup v1.1.2
 
-Update v1.1.1
-- Fixed arrow buttons so the preset stays highlighted as you move it
-- Changed all the log, print and GUI feedback messages to be easier to read
+Update v1.1.2
+- Added a custom trashing function that is only used if send2trash is not installed, so the program still works on
+fresh Ubuntu Linux with zero extra modules.
 
 A simple local backup application that runs on Windows and Linux
 
