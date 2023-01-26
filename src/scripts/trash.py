@@ -1,6 +1,6 @@
 import shutil
 from os.path import exists
-
+from scripts import logging
 try:
     trash_method = 0
     from send2trash import send2trash
@@ -101,7 +101,14 @@ def trash_file(path):
     # https://unix.stackexchange.com/questions/672442/how-does-the-trash-directory-work
     global trash_method
     if trash_method == 0:
-        send2trash(path)
+        try:
+            send2trash(path)
+        except FileNotFoundError:
+            msg = "ERROR: could not trash file at the path: \n   '" + path + "'\nThe name contains "
+            + " unrecognized characters that must be removed.\n"
+            logging.log_file += msg
+            logging.log_error(msg)
+            print(msg)
     else:
         # command-line method for a fresh linux install with no modules
         global trash_files_path

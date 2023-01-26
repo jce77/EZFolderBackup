@@ -6,6 +6,7 @@ from scripts import trash
 no_logging = False  # If true no log files will be created, False by default
 log_file = ""
 log_file_max_count = 50  # starts deleting the oldest file once 50 logs exist
+error_log = []
 
 
 def check_for_log_file_limit():
@@ -73,3 +74,29 @@ def print_to_log(label, log):
                   encoding="utf-8") as f:
             f.write(log)
         check_for_log_file_limit()
+
+
+# region Error logging
+
+def restart_log():
+    global error_log
+    error_log = []
+
+
+def log_error(msg):
+    error_log.append(msg)
+
+
+def get_errors():
+    msg = "--------------------------------------\nThere were " + str(len(error_log)) + " errors during the backup.\n"
+    count = 1
+    for error in error_log:
+        msg += "    " + str(count) + ". " + error
+        count += 1
+    return msg + "--------------------------------------\n"
+
+
+def error_count():
+    return len(error_log)
+
+# endregion

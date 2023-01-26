@@ -309,6 +309,8 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
     if use_graphics:
         ui.set_loading_bar_visible(window, False)
     return "BACKUP SUCCESSFUL"
+
+
     # endregion
 
 

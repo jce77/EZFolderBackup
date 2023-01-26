@@ -26,6 +26,7 @@ def run_backup(window, main_folder, backup_folders):
     """ Ensures the input backup_folders are all exact clones of the input main_folder """
     # use_graphics = type(window) != int
     global using_windows
+    logging.restart_log()
     logging.log_file = "Backup Log For Main Folder:\n"
     logging.log_file += main_folder + "\n\n"
     if not exists(main_folder):
@@ -64,13 +65,18 @@ def run_backup(window, main_folder, backup_folders):
             logging.log_file += "\n--------------------\nBackup Cancelled\n--------------------------------"
             logging.print_to_log("Backup", logging.log_file)
             return
+
     if ui.using_gui:
+        if response == "BACKUP SUCCESSFUL":
+            if logging.error_count() != 0:
+                response = "BACKUP SUCCESSFUL WITH ERRORS. View log for details."
         if error_msg == "":
             window["-ERROR-TEXT-"].update(response)
         else:
             window["-ERROR-TEXT-"].update(error_msg)
         window.refresh()
     # debug log
+    logging.log_file += logging.get_errors()
     logging.print_to_log("Backup", logging.log_file)
 
 
