@@ -2,8 +2,9 @@
 EZ Folder Backup v1.1.2
 
 Update v1.1.2
-- Added a custom trashing function that is only used if send2trash is not installed, so the program still works on
-fresh Ubuntu Linux with zero extra modules.
+- Added a trash function that replaces send2trash if its not installed, specifically to work with a fresh Ubuntu install
+- Fixed a number of errors preventing command-line backing up from running
+
 
 A simple local backup application that runs on Windows and Linux
 
