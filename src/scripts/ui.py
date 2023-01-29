@@ -163,7 +163,7 @@ def show_gui():
         elif event == "View Log":
             if main.using_windows:
                 logging.open_last_log_file()
-            else:
+            else:  # its like this because OS on linux doesn't have a start file function
                 logging.print_last_log_file()
                 window["-ERROR-TEXT-"].update("Check console")
         elif event == "Move Up":

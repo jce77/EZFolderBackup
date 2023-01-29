@@ -43,9 +43,9 @@ def get_all_foldernames(path):
 def get_trash_folders_inside_path(path):
     trash_folders = []  # multiple just in case
     folder_names = get_all_foldernames(path)
-    print("checking folder names")
+    # print("checking folder names")
     for folder in folder_names:
-        print("  " + str(folder))
+        # print("  " + str(folder))
         if os.path.basename(os.path.normpath(folder)) == "Trash":
             trash_folders.append()
     return trash_folders
