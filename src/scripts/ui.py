@@ -31,7 +31,7 @@ def get_backup_folders_from_gui(values):
     return backup_folders
 
 
-def show_gui():
+def show_gui(using_windows):
     """ Shows the main GUI """
     main.presets = saving.load_presets()
     preset_keys = []
@@ -45,6 +45,10 @@ def show_gui():
 
     h1_font = ("Arial Bold", 12)
     h2_font = ("Arial Bold", 10)
+
+    cancel_button_name = " "
+    if not using_windows:
+        cancel_button_name = " Cancel"
 
     left_column = [
         [
@@ -67,7 +71,8 @@ def show_gui():
                         border_width=0,
                         button_color=(gui.theme_background_color(), gui.theme_background_color()), ),
              gui.ProgressBar(BAR_MAX, orientation='h', size=(12.3, 31.5), key='-BAR-', visible=False),
-             gui.Button(" ", size=(14, 1), image_filename='images/cancel.png', visible=False)
+             gui.Button(cancel_button_name, size=(14, 1), image_filename='images/cancel.png', visible=False,
+                        mouseover_colors=('#CBCBCB', '#333333'), auto_size_button=False)
              ]], title_color='yellow', border_width=0)],
     ]
 

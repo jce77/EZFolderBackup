@@ -277,7 +277,7 @@ def start():
         # only loading settings in the GUI for now, otherwise they must be entered with run command
         # to be used
         saving.load_settings_from_config()
-        ui.show_gui()
+        ui.show_gui(using_windows)
     # Running with command-line parameters only
     else:
         if not eula.eula_agreed_to():
