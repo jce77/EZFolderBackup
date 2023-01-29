@@ -1,9 +1,11 @@
 """
-EZ Folder Backup v1.1.2
+EZ Folder Backup v1.1.3
 
-Update v1.1.2
-- Added a custom trashing function that is only used if send2trash is not installed, so the program still works on
-fresh Ubuntu Linux with zero extra modules.
+Update v1.1.3
+- GUI no longer freezes when clicked during a length copy operation
+- Pausing the backup waits until the current copy is finished to pause
+- Preset stays highlighted after saving now
+
 
 A simple local backup application that runs on Windows and Linux
 

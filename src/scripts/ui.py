@@ -235,6 +235,8 @@ def show_gui():
                 else:
                     refresh_presets_list(window, main.presets)
                     saving.save_presets_to_config(main.presets)
+                    preset_name = values["-CURRENT-PRESET-NAME-"]
+                    window["-PRESET LIST-"].set_value(preset_name)
         elif event == "-PRESET LIST-":  # A file was chosen from the listbox
             if len(values["-PRESET LIST-"]) > 0:
                 clicked_key = str(values["-PRESET LIST-"][0])

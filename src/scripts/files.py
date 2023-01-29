@@ -1,5 +1,6 @@
 # region 1. Imports and Variables
 import shutil
+import threading
 from os.path import exists
 from scripts import ui
 from scripts import logging
@@ -9,6 +10,7 @@ from scripts import trash
 
 skip_files = []
 skip_folders = []
+busy = False  # waiting for a process to be completed
 
 
 # endregion
@@ -259,13 +261,16 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
     # endregion
 
     # region 6. DOING COPY OPERATIONS ==================================================================================
+    pause_now = False
+    global busy
     for i in range(len(new_files)):
         # ------ refreshing the window and checking for events
         if use_graphics:
             # do event check here
             event, values = window.read(timeout=0)
             # if any input event in detected, open window to ask about cancelling
-            if event != '__TIMEOUT__':
+            if event != '__TIMEOUT__' or pause_now:
+                pause_now = False
                 if ui.question_box("Cancel backup operation?\n", 80, 15):
                     ui.set_loading_bar_visible(window, False)
                     return "BACKUP CANCELLED"
@@ -279,8 +284,6 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
             window["-ERROR-TEXT-"].update(str(ui.format_text_for_gui_display(msg)))
             window.refresh()
         assure_path_exists(path_to_file(new_files[i].target_path))
-
-        # REMOVED FOR NOW, IT IS NOT WORKING PROPERLY
         # ensuring there is enough space on the target drive for this operation
         new_space_used += new_files[i].size
         # print("SPACE LEFT=" + str((target_drive_free_space - new_space_used) // (2 ** 30)) +
@@ -292,15 +295,26 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
             # log messages done after message is returned
             return "INSUFFICIENT SPACE"
 
-        # copying the file
-        if using_windows:
-            shutil.copyfile(new_files[i].source_path, new_files[i].target_path)
-        else:
-            shutil.copyfile(new_files[i].source_path.replace("\\", "/"), new_files[i].target_path.replace("\\", "/"))
         if use_graphics:
+            thread1 = threading.Thread(target=copy_file_thread, args=(using_windows, new_files[i].source_path,
+                                                                      new_files[i].target_path))
+            thread1.start()
+            # input check and refresh
+            while busy:
+                window.refresh()
+                event, values = window.read(timeout=0)
+                if event != '__TIMEOUT__':
+                    window["-ERROR-TEXT-"].update(str("Pausing Backup..."))
+                    pause_now = True
             # loading bar stuff
             progress_count += 1
             window["-BAR-"].update(progress_count / files_to_process)
+        else:  # command line copy
+            if using_windows:
+                shutil.copyfile(new_files[i].source_path, new_files[i].target_path)
+            else:
+                shutil.copyfile(new_files[i].source_path.replace("\\", "/"),
+                                new_files[i].target_path.replace("\\", "/"))
     # endregion
 
     # region 7. Backup Successful, returning
@@ -310,13 +324,22 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
         ui.set_loading_bar_visible(window, False)
     return "BACKUP SUCCESSFUL"
 
-
     # endregion
 
 
 # endregion
 
 # region 4. Other Functions
+
+def copy_file_thread(using_windows, source_path, target_path):
+    global busy
+    busy = True
+    if using_windows:
+        shutil.copyfile(source_path, target_path)
+    else:
+        shutil.copyfile(source_path.replace("\\", "/"), target_path.replace("\\", "/"))
+    busy = False
+
 
 def backup_file(file_name):
     """ If the file exists its backed up ending with .old """
