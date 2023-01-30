@@ -108,15 +108,18 @@ def show_gui(using_windows):
 
         [gui.Frame('Backup Preset', [[gui.Button("New", size=(14, 1), image_filename='images/new_preset.png',
                                                  mouseover_colors=('#CBCBCB', '#333333')),
-                         gui.Button("Save", size=(14, 1), image_filename='images/save_preset.png',
-                                    mouseover_colors=('#CBCBCB', '#333333')),
-                         gui.Button("Delete", size=(14, 1), image_filename='images/delete_preset.png',
-                                    mouseover_colors=('#CBCBCB', '#333333'))]],
+                                      gui.Button("Save", size=(14, 1), image_filename='images/save_preset.png',
+                                                 mouseover_colors=('#CBCBCB', '#333333')),
+                                      gui.Button("Delete", size=(14, 1), image_filename='images/delete_preset.png',
+                                                 mouseover_colors=('#CBCBCB', '#333333'))]],
                    border_width=1)],
         [gui.Frame('', [[gui.Button("Run Backup", size=(14, 1), image_filename='images/backup_files.png',
                                     mouseover_colors=('#CBCBCB', '#333333')),
                          gui.Button("View Log", size=(14, 1), image_filename='images/view_log.png',
-                                    mouseover_colors=('#CBCBCB', '#333333'))]],
+                                    mouseover_colors=('#CBCBCB', '#333333')),
+                         gui.Button("Backup All", size=(14, 1), image_filename='images/backup_files.png',
+                                    mouseover_colors=('#CBCBCB', '#333333'))
+                         ]],
                    border_width=0)],
         [gui.Frame('', [[gui.Button("Settings", size=(14, 1), image_filename='images/settings.png',
                                     mouseover_colors=('#CBCBCB', '#333333')),
@@ -168,7 +171,7 @@ def show_gui(using_windows):
         elif event == "View Log":
             if main.using_windows:
                 logging.open_last_log_file()
-            else:
+            else:  # its like this because OS on linux doesn't have a start file function
                 logging.print_last_log_file()
                 window["-ERROR-TEXT-"].update("Check console")
         elif event == "Move Up":
@@ -185,11 +188,26 @@ def show_gui(using_windows):
                 saving.save_presets_to_config(main.presets)
                 refresh_presets_list(window, main.presets)
                 window["-PRESET LIST-"].set_value(preset_name)
+        elif event == "Backup All":
+            if len(main.presets) > 0:
+                if using_windows:
+                    check_box_text = 'Send deleted files to Recycle Bin?'
+                else:
+                    check_box_text = 'Send deleted files to Trash?'
+                response = question_box_with_radio("Backup files for all presets?", check_box_text, files.delete_files,
+                                                   80, 15)
+                # user clicked x box or answered no
+                if type(response) == bool or not response[0]:
+                    continue
+                files.delete_files = response[1]
+                main.run_backup_all()
+            else:
+                window["-ERROR-TEXT-"].update("No presets are saved")
         elif event == "Run Backup":
             use_backup_folders = get_backup_folders_from_gui(values)
             if files.valid_input_for_backup(values):
                 if not question_box("Backup files for preset '" + str(values["-CURRENT-PRESET-NAME-"]) + "'?\n" +
-                        "(Files that no longer exist in the Main Folder will be trashed)", 80, 15):
+                                    "(Files that no longer exist in the Main Folder will be trashed)", 80, 15):
                     continue
                 main.run_backup(window, values["-MAIN-FOLDER-"], use_backup_folders)
             else:
@@ -274,12 +292,17 @@ def refresh_presets_list(window, presets):
 def show_settings_box():
     global previous_skip_folders
     previous_skip_files = copy.copy(files.skip_files)
+
+    # region 1. layout
+
     layout = [
         [gui.Text('Settings:')],
         [gui.Frame('', [[gui.Text("Max number of log files: "),
                          gui.Input("", size=(14, 1), key="-MAX-LOG-FILES-")]], border_width=0)],
         [gui.Frame('', [[gui.Text("Do not log backups: "),
                          gui.Checkbox("", size=(14, 1), key="-DO-NOT-LOG-")]], border_width=0)],
+        [gui.Frame('', [[gui.Text("Recycle/Trash deleted files: "),
+                         gui.Checkbox("", size=(14, 1), key="-DELETE-FILES-")]], border_width=0)],
 
         # IGNORE FILE
         [gui.Frame('', [[gui.Text("File Names to ignore:", size=(20, 1))]], title_color='yellow', border_width=0)],
@@ -312,11 +335,15 @@ def show_settings_box():
     ]
     window = gui.Window("EZ Folder Backup Settings", layout, margins=(8, 20), icon=main.icon_file,
                         element_justification='l', finalize=True)
+
+    # endregion
+
     # previous_log_file_max_count = copy.copy(log_file_max_count)
     window["-MAX-LOG-FILES-"].update(str(logging.log_file_max_count))
     # previous_no_logging = copy.copy(no_logging)
-    if logging.no_logging:
-        window["-DO-NOT-LOG-"].update(True)
+    window["-DO-NOT-LOG-"].update(logging.no_logging)
+    window["-DELETE-FILES-"].update(files.delete_files)
+    print("files.delete_files=" + str(files.delete_files))
     while True:
         event, values = window.read()
         if event == "-ADD-IGNORED-":
@@ -355,7 +382,7 @@ def show_settings_box():
             for i in range(0, len(files.skip_folders)):
                 # print(str(i))
                 # print("comparing " + str(skip_folders[i]) + " to " + str(to_remove))
-                if files.skip_folders[i] == to_remove: # if file to remove found
+                if files.skip_folders[i] == to_remove:  # if file to remove found
                     # print("deleting from files to skip")
                     del files.skip_folders[i]
                     window["-IGNORED-FOLDERS-"].update(files.skip_folders)
@@ -375,6 +402,7 @@ def show_settings_box():
             window["-IGNORE-FOLDER-"].update(value)
         if event == "Save":
             logging.no_logging = values["-DO-NOT-LOG-"]
+            files.delete_files = values["-DELETE-FILES-"]
             logging.log_file_max_count = int(values["-MAX-LOG-FILES-"])
             saving.save_settings_to_config()
             break
@@ -413,6 +441,32 @@ def show_support_email():
         if event == gui.WIN_CLOSED:
             break
     window.close()
+
+
+def question_box_with_radio(question, radio_text, radio_value, x_size, y_size):
+    """ Opens a binary question box with a radio button and returns a tuple with the two booleans """
+    layout = [
+        [gui.Text(str(question))],
+        [gui.Frame('', [[gui.Button("Yes", size=(5, 1)),
+                         gui.Button("No", size=(5, 1))],
+                        [gui.Checkbox(radio_text, default=radio_value, key="Cleanup")]],
+                   border_width=0)],
+    ]
+    window = gui.Window("EZ Folder Backup", layout, margins=(x_size, y_size), icon=main.icon_file,
+                        element_justification='c')
+    answered_yes = False
+    while True:
+        event, values = window.read()
+        if event == "Yes":
+            answered_yes = True
+            break
+        if event == "No" or event == gui.WIN_CLOSED:
+            answered_yes = False
+            break
+    window.close()
+    return answered_yes
+
+    return True, True
 
 
 def question_box(question, x_size, y_size):
@@ -458,6 +512,10 @@ def print_help_commands(print_in_console):
           "                                                                              \n" \
           "-b path..............................Adds a single backup folder to be used in\n" \
           "                                     this command. Can be used max five times.\n" \
+          "-cleanup                             Combine with '-runbackup' or             \n" \
+          "                                     '-runbackupall' command to delete files  \n" \
+          "                                     in backup archives that no longer exist  \n" \
+          "                                     in the main folder.                      \n" \
           "-createpreset name -m path -b path...Creates a preset with the input name,    \n" \
           "                                     main folder, and up to five backup       \n" \
           "                                     folder paths that are preceded by -b.    \n" \
@@ -474,7 +532,12 @@ def print_help_commands(print_in_console):
           "                                     backups.                                 \n" \
           "-runbackup -m path -b path...........Runs backup for main folder -m and up to \n" \
           "                                     five backup folders that are each        \n" \
-          "                                     preceded by -b.                          \n" \
+          "                                     preceded by -b. Optionally add '-cleanup'\n" \
+          "                                     to delete files that no longer exist in  \n" \
+          "                                     the main folder.                         \n" \
+          "-runbackupall                        Runs backup for every saved preset.      \n" \
+          "                                     Optionally add '-cleanup' to delete files\n" \
+          "                                     that no longer exist in the main folder. \n" \
           "-runpreset name......................Runs backup for the input preset.        \n" \
           "-skipfile filename...................Skips this filename, use -skipfile once  \n" \
           "                                     per new filename to be skipped.          \n" \

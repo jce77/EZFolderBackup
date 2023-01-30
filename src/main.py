@@ -1,10 +1,8 @@
 """
-EZ Folder Backup v1.1.3
+EZ Folder Backup v1.1.4
 
-Update v1.1.3
-- GUI no longer freezes when clicked during a length copy operation
-- Pausing the backup waits until the current copy is finished to pause
-- Preset stays highlighted after saving now
+Update v1.1.4
+- Added setting to make deleting files optional, and off by default
 
 
 A simple local backup application that runs on Windows and Linux

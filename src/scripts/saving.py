@@ -5,7 +5,7 @@ from scripts import files
 from scripts import logging
 
 all_commands = ["-createpreset", "-b", "-deletepreset", "-h", "-help", "-hf", "-logfilemax", "-m", "-moveup",
-                "-movedown",
+                "-movedown", "-cleanup",
                 "-nologging", "-runbackup", "-runpreset", "-skipfile", "-support", "-version", "-viewlog",
                 "-viewpresets", "-skipfolder"]
 
@@ -56,9 +56,12 @@ def load_settings_from_config():
                     files.skip_files.append(line[10: len(line)])
                 elif 'skip_folder=' in line:
                     files.skip_folders.append(line[12: len(line)])
+                elif 'cleanup=' in line:
+                    files.delete_files = line[8: len(line)] == 'True'
     else:
         files.skip_files = []
         files.skip_folders = []
+        files.delete_files = False
         # save default settings to the config
         save_settings_to_config()
 
@@ -66,6 +69,7 @@ def load_settings_from_config():
 def save_settings_to_config():
     settings = "log_file_max_count=" + str(logging.log_file_max_count) + "\n"
     settings += "no_logging=" + str(logging.no_logging) + "\n"
+    settings += "cleanup=" + str(files.delete_files) + "\n"
     for file in files.skip_files:
         settings += "skip_file=" + file + "\n"
     for folder_name in files.skip_folders:

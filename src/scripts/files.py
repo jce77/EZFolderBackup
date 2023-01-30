@@ -8,10 +8,10 @@ import os
 import datetime
 from scripts import trash
 
+delete_files = False  # if true, files will be recycled/trashed in backup folders when no longer existing in main folder
 skip_files = []
 skip_folders = []
 busy = False  # waiting for a process to be completed
-
 
 # endregion
 
@@ -223,41 +223,43 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
     # endregion
 
     # region 5. DOING DELETE OPERATIONS ================================================================================
-    for i in range(len(del_files)):
-        file_name = get_filename(del_files[i].target_path)
-        msg = ""
-        if using_windows:
-            msg += "  Recycling: '" + file_name + "'"
-        else:
-            msg += "  Trashing: '" + file_name + "'"
-        print(msg)
-        logging.log_file += msg + "\n    from path: '" + del_files[i].target_path + "'\n"
-        if use_graphics:
-            window["-ERROR-TEXT-"].update(str(ui.format_text_for_gui_display(msg)))
-            window.refresh()
-        # os.remove(backup_directory + file_in_backup) # old method that fully deletes file instantly
-        trash.trash_file(del_files[i].target_path)
-        # deleting folder if its empty now
-        delete_directory_if_empty(del_files[i].target_path)
+    global delete_files
+    if delete_files:
+        for i in range(len(del_files)):
+            file_name = get_filename(del_files[i].target_path)
+            msg = ""
+            if using_windows:
+                msg += "  Recycling: '" + file_name + "'"
+            else:
+                msg += "  Trashing: '" + file_name + "'"
+            print(msg)
+            logging.log_file += msg + "\n    from path: '" + del_files[i].target_path + "'\n"
+            if use_graphics:
+                window["-ERROR-TEXT-"].update(str(ui.format_text_for_gui_display(msg)))
+                window.refresh()
+            # os.remove(backup_directory + file_in_backup) # old method that fully deletes file instantly
+            trash.trash_file(del_files[i].target_path)
+            # deleting folder if its empty now
+            delete_directory_if_empty(del_files[i].target_path)
 
-        # removing from new_space_used since deleting creates more space
-        new_space_used -= del_files[i].size
-        # print(" SPACE LEFT=" + str((target_drive_free_space - new_space_used) // (2 ** 30)) +
-        #       "GB left")
+            # removing from new_space_used since deleting creates more space
+            new_space_used -= del_files[i].size
+            # print(" SPACE LEFT=" + str((target_drive_free_space - new_space_used) // (2 ** 30)) +
+            #       "GB left")
 
-        # ------ refreshing the window and checking for events
-        if use_graphics:
-            # loading bar stuff
-            progress_count += 1
-            window["-BAR-"].update(progress_count / files_to_process)
-            # do event check here
-            event, values = window.read(timeout=0)
-            # if any input event in detected, open window to ask about cancelling
-            if event != '__TIMEOUT__':
-                if ui.question_box("Cancel backup operation?\n", 80, 15):
-                    ui.set_loading_bar_visible(window, False)
-                    return "BACKUP CANCELLED"
-        # -----------------------------------------------------
+            # ------ refreshing the window and checking for events
+            if use_graphics:
+                # loading bar stuff
+                progress_count += 1
+                window["-BAR-"].update(progress_count / files_to_process)
+                # do event check here
+                event, values = window.read(timeout=0)
+                # if any input event in detected, open window to ask about cancelling
+                if event != '__TIMEOUT__':
+                    if ui.question_box("Cancel backup operation?\n", 80, 15):
+                        ui.set_loading_bar_visible(window, False)
+                        return "BACKUP CANCELLED"
+            # -----------------------------------------------------
     # endregion
 
     # region 6. DOING COPY OPERATIONS ==================================================================================

@@ -10,7 +10,7 @@ from os.path import exists
 
 all_commands = ["-createpreset", "-b", "-deletepreset", "-h", "-help", "-hf", "-logfilemax", "-m", "-moveup",
                 "-movedown",
-                "-nologging", "-runbackup", "-runpreset", "-skipfile", "-support", "-version", "-viewlog",
+                "-nologging", "-runbackup", "-runbackupall", "-runpreset", "-skipfile", "-support", "-version", "-viewlog",
                 "-viewpresets", "-skipfolder"]
 backup_folders = []
 
@@ -18,8 +18,14 @@ main_folder = ""
 
 presets = {}
 icon_file = ""
-version = "1.1.3"
+version = "1.1.4"
 using_windows = False
+
+
+def run_backup_all():
+    """ Backs up every saved preset """
+    print("RUNNING BACKUP ALL")
+    pass
 
 
 def run_backup(window, main_folder, backup_folders):
@@ -100,7 +106,7 @@ def run_commands(commands):
         print("-createpreset can only be run once at a time.")
         sys.exit(1)
     elif keys.count("-runbackup") > 1:
-        print("-runbackup can only be run once at a time.")
+        print("-runbackup can only be run once at a time, use '-runbackupall' to back up multiple in one command.")
         sys.exit(1)
     # Running commands =======================
     if "-moveup" in keys:
@@ -151,6 +157,8 @@ def run_commands(commands):
                 logging.log_file_max_count = int(cmd[1])
     if "-nologging" in keys:
         logging.no_logging = True
+    if "-cleanup" in keys:
+        files.delete_files = True
     if "-skipfile" in keys:
         for cmd in commands:
             if cmd[0] == "-skipfile":
@@ -159,6 +167,7 @@ def run_commands(commands):
         for cmd in commands:
             if cmd[0] == "-skipfolder":
                 files.skip_folders.append(cmd[1])
+    saving.save_settings_to_config()
     # Presets
     if "-createpreset" in keys:
         preset_key = ""
@@ -202,8 +211,11 @@ def run_commands(commands):
             saving.save_presets_to_config(presets)
         else:
             print("Key entered '" + preset_key + "' could not be found to be deleted.")
-    # Running Backup
-    if "-runbackup" in keys:
+    # Backup All Presets
+    if "-runbackupall" in keys:
+        run_backup_all()
+    # Backup With Input Folders
+    elif "-runbackup" in keys:
         main_folder = ""
         backup_folders = []
         for cmd in commands:
@@ -221,6 +233,7 @@ def run_commands(commands):
             print("The main folder '" + main_folder + "' could not be found.")
             sys.exit(1)
         run_backup(0, main_folder, backup_folders)
+    # Backup a saved preset
     elif "-runpreset" in keys:
         preset_key = ""
         for cmd in commands:
