@@ -196,11 +196,13 @@ def show_gui(using_windows):
                     check_box_text = 'Send deleted files to Trash?'
                 response = question_box_with_radio("Backup files for all presets?", check_box_text, files.delete_files,
                                                    80, 15)
+
                 # user clicked x box or answered no
                 if type(response) == bool or not response[0]:
                     continue
                 files.delete_files = response[1]
-                main.run_backup_all()
+                saving.save_settings_to_config()
+                main.run_backup_all(window)
             else:
                 window["-ERROR-TEXT-"].update("No presets are saved")
         elif event == "Run Backup":
@@ -213,14 +215,7 @@ def show_gui(using_windows):
             else:
                 window["-ERROR-TEXT-"].update("You must set the main drive and at least one backup drive")
         elif event == "New":
-            window["-MAIN-FOLDER-"].update("")
-            window["-BACKUP1-"].update("")
-            window["-BACKUP2-"].update("")
-            window["-BACKUP3-"].update("")
-            window["-BACKUP4-"].update("")
-            window["-BACKUP5-"].update("")
-            window["-CURRENT-PRESET-NAME-"].update("")
-
+            clear_preset_info(window)
         elif event == "Delete":
             if values["-CURRENT-PRESET-NAME-"] in main.presets:
                 if not question_box("Delete preset '" + str(values["-CURRENT-PRESET-NAME-"]) + "'?", 80, 15):
@@ -229,6 +224,7 @@ def show_gui(using_windows):
                 del main.presets[values["-CURRENT-PRESET-NAME-"]]
                 refresh_presets_list(window, main.presets)
                 saving.save_presets_to_config(main.presets)
+                clear_preset_info(window)
             else:
                 window["-ERROR-TEXT-"].update("Cannot Delete, Not Found")
         elif event == "Save":
@@ -273,6 +269,16 @@ def show_gui(using_windows):
                     pass
         # ==============================================
     window.close()
+
+
+def clear_preset_info(window):
+    window["-MAIN-FOLDER-"].update("")
+    window["-BACKUP1-"].update("")
+    window["-BACKUP2-"].update("")
+    window["-BACKUP3-"].update("")
+    window["-BACKUP4-"].update("")
+    window["-BACKUP5-"].update("")
+    window["-CURRENT-PRESET-NAME-"].update("")
 
 
 def set_loading_bar_visible(window, value):
@@ -343,7 +349,6 @@ def show_settings_box():
     # previous_no_logging = copy.copy(no_logging)
     window["-DO-NOT-LOG-"].update(logging.no_logging)
     window["-DELETE-FILES-"].update(files.delete_files)
-    print("files.delete_files=" + str(files.delete_files))
     while True:
         event, values = window.read()
         if event == "-ADD-IGNORED-":
@@ -464,9 +469,7 @@ def question_box_with_radio(question, radio_text, radio_value, x_size, y_size):
             answered_yes = False
             break
     window.close()
-    return answered_yes
-
-    return True, True
+    return answered_yes, values["Cleanup"]
 
 
 def question_box(question, x_size, y_size):

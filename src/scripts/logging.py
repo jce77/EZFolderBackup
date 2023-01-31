@@ -62,17 +62,18 @@ def open_last_log_file():
         os.startfile(last_log_file)
 
 
-def print_to_log(label, log):
+def print_log(label):
     """ Prints a log file with a label and deletes the oldest parameter if there are
     more than log_file_max_count log files in the folder """
     global no_logging
+    global log_file
     if not no_logging:
         if not exists("log/"):
             os.mkdir("log/")
         filename = label + "-" + str(datetime.now().strftime("[%Y_%m_%d]-[%H_%M_%S]")) + ".txt"
         with open("log/" + filename, "w",
                   encoding="utf-8") as f:
-            f.write(log)
+            f.write(log_file)
         check_for_log_file_limit()
 
 
@@ -80,7 +81,9 @@ def print_to_log(label, log):
 
 def restart_log():
     global error_log
+    global log_file
     error_log = []
+    log_file = ""
 
 
 def log_error(msg):
