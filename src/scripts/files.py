@@ -331,7 +331,45 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
 
 # endregion
 
-# region 4. Other Functions
+# region 4. Unit Testing Help Functions
+
+import random
+import string
+
+
+def delete_all_files_in_path(path):
+    files = get_all_filenames(path)
+    for file in files:
+        os.remove(file)
+
+
+def delete_folder(path):
+    if exists(path):
+        os.rmdir(path)
+
+
+def remove_test_files(test_files_path):
+    delete_all_files_in_path(test_files_path)
+    delete_folder(test_files_path)
+
+
+def create_test_files(test_files_path, main_folder_size_kb):
+    assure_path_exists(test_files_path)
+    main_folder = test_files_path + "/main/"
+    backup_folders = [test_files_path + "/b1/", test_files_path + "/b2/", test_files_path + "/b3/",
+                      test_files_path + "/b4/", test_files_path + "/b5/"]
+    folders = []
+    return main_folder, backup_folders
+
+
+def generate_random_files_and_folders(path):
+    s = string.lowercase + string.digits
+    ''.join(random.sample(s, 10))
+
+# endregion
+
+# region 5. Other Functions
+
 
 def copy_file_thread(using_windows, source_path, target_path):
     global busy
@@ -473,3 +511,5 @@ def move_index_in_dict(list, dict_key, moving_upwards):
     return new_dict
 
 # endregion
+
+

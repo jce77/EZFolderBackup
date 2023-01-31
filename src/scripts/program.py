@@ -176,9 +176,13 @@ def run_commands(commands):
             if cmd[0] == "-logfilemax":
                 logging.log_file_max_count = int(cmd[1])
     if "-nologging" in keys:
-        logging.no_logging = True
+        for cmd in commands:
+            if cmd[0] == "-nologging":
+                logging.no_logging = cmd[1] == "on"
     if "-cleanup" in keys:
-        files.delete_files = True
+        for cmd in commands:
+            if cmd[0] == "-cleanup":
+                files.delete_files = cmd[1] == "on"
     if "-skipfile" in keys:
         for cmd in commands:
             if cmd[0] == "-skipfile":

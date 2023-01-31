@@ -5,6 +5,7 @@ Update v1.1.4
 - Added setting to make deleting files optional, and off by default
 - Deleting a preset now clears its backup locations and name
 - Added a button to run every single backup preset
+- Added command-line option to toggle on and off cleanup and nologging
 
 
 

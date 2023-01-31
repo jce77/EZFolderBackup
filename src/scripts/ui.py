@@ -515,10 +515,10 @@ def print_help_commands(print_in_console):
           "                                                                              \n" \
           "-b path..............................Adds a single backup folder to be used in\n" \
           "                                     this command. Can be used max five times.\n" \
-          "-cleanup                             Combine with '-runbackup' or             \n" \
-          "                                     '-runbackupall' command to delete files  \n" \
-          "                                     in backup archives that no longer exist  \n" \
-          "                                     in the main folder.                      \n" \
+          "-cleanup on..........................Toggles on deletion of files that no     \n" \
+          "                                     longer exist in the main folder.         \n" \
+          "-cleanup off.........................Toggles off deletion of files that no    \n" \
+          "                                     longer exist in the main folder.         \n" \
           "-createpreset name -m path -b path...Creates a preset with the input name,    \n" \
           "                                     main folder, and up to five backup       \n" \
           "                                     folder paths that are preceded by -b.    \n" \
@@ -526,19 +526,22 @@ def print_help_commands(print_in_console):
           "-h...................................Show help menu and exit.                 \n" \
           "-hf..................................Creates a file help.txt containing the   \n" \
           "                                     help menu.                               \n" \
-          "-logfilemax count....................Set max number of log files are deleted. \n" \
+          "-logfilemax count....................Sets the maximum number of log files     \n" \
+          "                                     before the oldest file is deleted.       \n" \
           "-m path..............................Adds the path to the single main folder  \n" \
           "                                     to be used for this command.             \n" \
           "-movedown name.......................Moves the input preset down in the list. \n" \
           "-moveup name.........................Moves the input preset up in the list.   \n" \
-          "-nologging...........................Stops debug logs from being printed after\n" \
-          "                                     backups.                                 \n" \
+          "-nologging on........................Toggles on stopping debug logs from being\n" \
+          "                                     printed after backups.                   \n" \
+          "-nologging off.......................Toggles off stopping debug logs from     \n" \
+          "                                     being printed after backups.             \n" \
           "-runbackup -m path -b path...........Runs backup for main folder -m and up to \n" \
           "                                     five backup folders that are each        \n" \
           "                                     preceded by -b. Optionally add '-cleanup'\n" \
           "                                     to delete files that no longer exist in  \n" \
           "                                     the main folder.                         \n" \
-          "-runbackupall                        Runs backup for every saved preset.      \n" \
+          "-runbackupall........................Runs backup for every saved preset.      \n" \
           "                                     Optionally add '-cleanup' to delete files\n" \
           "                                     that no longer exist in the main folder. \n" \
           "-runpreset name......................Runs backup for the input preset.        \n" \
