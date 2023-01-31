@@ -10,7 +10,8 @@ from os.path import exists
 
 all_commands = ["-createpreset", "-b", "-deletepreset", "-h", "-help", "-hf", "-logfilemax", "-m", "-moveup",
                 "-movedown",
-                "-nologging", "-runbackup", "-runbackupall", "-runpreset", "-skipfile", "-support", "-version", "-viewlog",
+                "-nologging", "-runbackup", "-runbackupall", "-runpreset", "-skipfile", "-support", "-version",
+                "-viewlog",
                 "-viewpresets", "-skipfolder"]
 backup_folders = []
 
@@ -22,19 +23,9 @@ version = "1.1.4"
 using_windows = False
 
 
-def run_backup_all():
-    """ Backs up every saved preset """
-    print("RUNNING BACKUP ALL")
-    pass
-
-
-def run_backup(window, main_folder, backup_folders):
+def backup_operation(window, main_folder, backup_folders):
     """ Ensures the input backup_folders are all exact clones of the input main_folder """
-    # use_graphics = type(window) != int
     global using_windows
-    logging.restart_log()
-    logging.log_file = "Backup Log For Main Folder:\n"
-    logging.log_file += main_folder + "\n\n"
     if not exists(main_folder):
         if ui.using_gui:
             window["-ERROR-TEXT-"].update("The main folder was not found")
@@ -81,9 +72,38 @@ def run_backup(window, main_folder, backup_folders):
         else:
             window["-ERROR-TEXT-"].update(error_msg)
         window.refresh()
-    # debug log
+
+
+def run_backup_all(window):
+    """ Backs up every saved preset """
+    global presets
+    logging.restart_log()
+    logging.log_file += "BACKING UP ALL PRESETS:\n"
+    logging.log_file += "==============================================================\n"
+    logging.log_file += "==============================================================\n"
+    print("Backup up all presets: \n===========================")
+    for preset in presets:
+        print("Backing Up '" + str(preset) + "'")
+        if ui.using_gui:
+            window["-PRESET LIST-"].set_value(preset)  # selecting the preset in the GUI
+        logging.log_file += "Backing Up '" + str(preset) + "'\n"
+        logging.log_file += main_folder + "\n\n"
+        backup_operation(window, presets[preset]['main_folder'], presets[preset]['backup_folders'])
+        logging.log_file += "-----------------------------------------------------------------------\n"
+        print("-----------------------------------------------------------------------")
     logging.log_file += logging.get_errors()
-    logging.print_to_log("Backup", logging.log_file)
+    logging.print_log("Backup")
+    pass
+
+
+def run_backup(window, main_folder, backup_folders):
+    """ Ensures the input backup_folders are all exact clones of the input main_folder """
+    logging.restart_log()
+    logging.log_file += "Backup Log For Main Folder:\n"
+    logging.log_file += main_folder + "\n\n"
+    backup_operation(window, main_folder, backup_folders)
+    logging.log_file += logging.get_errors()
+    logging.print_log("Backup")
 
 
 def run_commands(commands):
@@ -213,7 +233,7 @@ def run_commands(commands):
             print("Key entered '" + preset_key + "' could not be found to be deleted.")
     # Backup All Presets
     if "-runbackupall" in keys:
-        run_backup_all()
+        run_backup_all(0)
     # Backup With Input Folders
     elif "-runbackup" in keys:
         main_folder = ""
@@ -253,14 +273,14 @@ def run_commands(commands):
         run_backup(0, preset["main_folder"], preset["backup_folders"])
 
 
-def start():
+def start(arguments):
     global using_windows
     global clicked_cancel_button
     using_windows = False
     if 'win32' in platform or 'win64' in platform:
         using_windows = True
     ui.using_gui = False
-    if len(sys.argv) == 1:
+    if len(arguments) == 1:
         ui.using_gui = True
     if not exists("EULA.txt"):
         eula.agreed_to_eula(False)
@@ -302,5 +322,5 @@ def start():
             else:
                 print("Please agree to EULA before using the program. Thank you.")
                 sys.exit(0)
-        commands = saving.sort_arguments(sys.argv)
+        commands = saving.sort_arguments(arguments)
         run_commands(commands)
