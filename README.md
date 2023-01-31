@@ -1,7 +1,7 @@
-# EZ File Backup
+# EZ Folder Backup
 
 ## About
-_**EZ File Backup**_ is a free local file backup tool for Windows and Linux that 
+_**EZ Folder Backup**_ is a free local file backup tool for Windows and Linux that 
 ensures backup folders are exact clones of a folder you want to protect. 
 Either using a graphical interface or command-line parameters you can easily ensure
 all changes made are forced on the backup folders automatically including new files 
@@ -14,13 +14,17 @@ The latest version can be found [here](https://github.com/jce77/EZFolderBackup).
   - Ensure the _images_ folder is in the same folder as the included .exe file
   - Run _EZ Folder Backup.exe_
 - Running on Linux with command line only:
-  - View all commands with: `$ python main.py -help`
+  - (Optional) Install _send2trash_ on pip: `$ pip install send2trash `
+  - View all commands with: `$ python3 main.py -help`, more in-depth instructions are below.
 - Running on Ubuntu Linux with graphics:
   - Ensure the _images_ folder is in the same folder as _main.py_
   - Install _PySimpleGUI_ on pip: `$ pip install pysimplegui `
+  - Install _send2trash_ on pip: `$ pip install send2trash `
   - Install _tkinter_ on your OS:
-    - If using Ubuntu Linux with apt: `$ sudo apt-get install python3-tk`
-    - Otherwise if using a distro with dnf: `$ sudo dnf install python3-tkinter`
+    - If using Ubuntu Linux with apt:
+      - `$ sudo apt-get install python3-tk`
+    - Otherwise if using a Linux distribution with dnf:
+      - `$ sudo dnf install python3-tkinter`
   - Run with: `$ python3 main.py`
 
 ## Basic Usage With Graphical Interface
