@@ -9,6 +9,9 @@ Update v1.1.4
 
 
 
+
+
+
 A simple local backup application that runs on Windows and Linux
 
 Run on windows:
@@ -31,6 +34,7 @@ import sys
 
 def testing_start(arguments):
     """ For Running Unit Tests """
+    print("START: " + str(arguments))
     program.start(arguments)
 
 

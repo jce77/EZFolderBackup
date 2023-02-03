@@ -7,11 +7,13 @@ from scripts import logging
 import os
 import datetime
 from scripts import trash
+import sys
 
 delete_files = False  # if true, files will be recycled/trashed in backup folders when no longer existing in main folder
 skip_files = []
 skip_folders = []
 busy = False  # waiting for a process to be completed
+
 
 # endregion
 
@@ -174,9 +176,9 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
             # move operation will happen
             if new_files[i].size == del_files[j].size and new_files[i].filename == del_files[j].filename:
                 if using_windows:
-                    assure_path_exists(path_to_file(new_files[i].target_path))
+                    assure_path_to_file_exists(path_to_file(new_files[i].target_path))
                 else:
-                    assure_path_exists(path_to_file(new_files[i].target_path.replace("\\", "/")))
+                    assure_path_to_file_exists(path_to_file(new_files[i].target_path.replace("\\", "/")))
                 # moving a file instead of doing a copy and delete
                 if using_windows:
                     shutil.move(del_files[j].target_path, new_files[i].target_path)
@@ -192,7 +194,7 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
                 if use_graphics:
                     window["-ERROR-TEXT-"].update(str(ui.format_text_for_gui_display(msg)))
                     window.refresh()
-                assure_path_exists(path_to_file(backup_location))
+                assure_path_to_file_exists(path_to_file(backup_location))
                 if using_windows:
                     shutil.copyfile(main_folder + file, backup_location)
                 else:
@@ -285,7 +287,8 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
         if use_graphics:
             window["-ERROR-TEXT-"].update(str(ui.format_text_for_gui_display(msg)))
             window.refresh()
-        assure_path_exists(path_to_file(new_files[i].target_path))
+        assure_path_to_file_exists(new_files[i].target_path)
+        # assure_path_to_file_exists(path_to_file(new_files[i].target_path))
         # ensuring there is enough space on the target drive for this operation
         new_space_used += new_files[i].size
         # print("SPACE LEFT=" + str((target_drive_free_space - new_space_used) // (2 ** 30)) +
@@ -353,18 +356,170 @@ def remove_test_files(test_files_path):
     delete_folder(test_files_path)
 
 
-def create_test_files(test_files_path, main_folder_size_kb):
-    assure_path_exists(test_files_path)
-    main_folder = test_files_path + "/main/"
-    backup_folders = [test_files_path + "/b1/", test_files_path + "/b2/", test_files_path + "/b3/",
-                      test_files_path + "/b4/", test_files_path + "/b5/"]
-    folders = []
+def random_string(min_length, max_length):
+    letters = string.ascii_lowercase
+    return ''.join(random.choice(letters) for i in range(random.randint(min_length, max_length)))
+
+
+def create_random_file(path):
+    # file_name = os.path.join(path, random_string(5, 10) + "." + random_string(1, 5))
+    file_name = path + '/' + random_string(5, 10) + "." + random_string(1, 5)
+    # print("file_name=" + file_name)
+    # file_name = (file_name.replace("\\", "/")).replace("//", "/")
+    # print("file_name=" + file_name)
+    assure_path_to_file_exists(file_name)
+    fp = open(file_name, 'w')
+    fp.write(random_string(20000, 100000))
+    fp.close()
+    return file_name
+
+
+def fill_path_with_random_files(path, size_bytes):
+    memory_used_bytes = 0
+    while memory_used_bytes < size_bytes:
+        # create random file and keep track of the size of the files created
+        file_name = create_random_file(path)
+        memory_used_bytes += get_file_size(file_name)
+        # print("memory_used_kb=" + str(memory_used_bytes) + " for " + file_name)
+        pass
+
+
+def get_all_subfolders(path):
+    return [f.path for f in os.scandir(path) if f.is_dir()]
+
+
+def fully_delete_path(path):
+    """ WARNING, this is for unit testing ONLY and permanently deletes this path """
+    if not exists(path):
+        return
+    fully_delete_files_in_path(path)
+    fully_delete_folders_in_path(path)
+    os.rmdir(path)
+
+
+def fully_delete_files_in_path(path):
+    """ WARNING, this is for unit testing ONLY and permanently deletes files """
+    files = get_all_filenames(path)
+    for file in files:
+        os.remove(file)
+
+
+def fully_delete_folders_in_path(path):
+    """ WARNING, this is for unit testing ONLY and permanently deletes folders """
+    # format the path
+    path = (path.replace("\\\\", "\\")).replace("\\", "/")
+
+    # print("trash_empty_folders(" + path + ")")
+    # print("path=" + path)
+    # print(str(path.split("/")))
+
+    dist_from_path_to_root = len(path.split("/"))
+    folders = get_all_foldernames(path)
+    for folder in folders:
+        # this folder is not empty
+        if len(os.listdir(folder)) > 0:
+            continue
+
+        # getting distance to the root directory
+        folder = (folder.replace("\\\\", "\\")).replace("\\", "/")
+
+        # print("removing folder: " + os.path.basename(folder))
+        # print("dist_from_path_to_root=" + str(dist_from_path_to_root))
+        # print("len(os.path.split(folder))=" + str(len(folder.split("/"))))
+        # print("folder=" + folder)
+
+        dist_to_root = len(folder.split("/")) - dist_from_path_to_root
+        # deleting the folder
+        os.rmdir(folder)
+        #  checking backwards a safe number of times for more empty folders, ensuring not to go past the root
+        # print(" for i in range(dist_to_root) " + str(dist_to_root))
+        for i in range(dist_to_root):
+            # print("    i=" + str(i))
+            # go one folder up
+            folder = os.path.dirname(folder)
+            # if reached the path, stop now
+            if folder == path:
+                break
+            # if this directory is also empty
+            elif len(os.listdir(folder)) == 0:
+                # deleting the folder
+                os.rmdir(folder)
+                # print("         Deleting folder: " + folder)
+            else:
+                # folder is not empty, no need to keep checking up the path
+                # print("         folder is not empty")
+                break
+
+
+def folders_are_equal(folder1, folder2):
+    """ Returns True if the contents of both folders have the same names """
+    files1 = get_all_filenames(folder1)
+    files2 = get_all_filenames(folder2)
+    for file1 in files1:
+        found = False
+        for file2 in files2:
+            if file1[len(folder1): len(file1)] == file2[len(folder2): len(file2)] and \
+                    get_file_size(file1) == get_file_size(file2):
+                found = True
+                break
+        if not found:
+            return False
+    return True
+
+
+def create_test_files(test_files_path, main_folder_size_bytes):
+    assure_path_to_file_exists(test_files_path)
+    main_folder = test_files_path + "/main"
+    backup_folders = [test_files_path + "/b1", test_files_path + "/b2", test_files_path + "/b3",
+                      test_files_path + "/b4", test_files_path + "/b5"]
+    main_sub_folders = [main_folder,
+                   main_folder + "/move_to",
+                   main_folder + "/folder1",
+                   main_folder + "/folder1/folder2",
+                   main_folder + "/folder1/folder2/folder3",
+                   main_folder + "/folder4",
+                   main_folder + "/folder4/folder5"
+                   ]
+    print("Setting up test environment...")
+    # 1. create files in main folder
+    for i in range(7):
+        fill_path_with_random_files(main_sub_folders[i], (main_folder_size_bytes / len(main_sub_folders)))
+    # 2. copying the main folder to all backup folders
+    files_to_copy = get_all_filenames(main_folder)
+    root_path_length = len(main_folder)
+    for backup_folder in backup_folders:
+        for file in files_to_copy:
+            file_name = file[root_path_length:len(file)]
+            backup_location = backup_folder + file_name
+            # print("file: " + file_name + ", backup_location: " + backup_location)
+            assure_path_to_file_exists(backup_location)
+            shutil.copyfile(file, backup_location)
+    # 3. making delete operation setups (creating new files to delete)
+    files = get_all_filenames(main_sub_folders[2])
+    for path in files:
+        file_name = path[root_path_length:len(path)] + ".delete"
+        for backup_folder in backup_folders:
+            shutil.copyfile(path, backup_folder + file_name)
+    # 4. making copy operation setups (deleting random files)
+    for backup_folder in backup_folders:
+        files = get_all_filenames(backup_folder)
+        for i in range(int(len(files) / 4)):
+            file = files[random.randrange(0, len(files))]
+            if exists(file):
+                os.remove(file)
+    # 5. making move operation steps (moving files out of the move folder)
+    for backup_folder in backup_folders:
+        files = get_all_filenames(backup_folder + "/move_to")
+        for file in files:
+            file_name = os.path.basename(file)
+            shutil.move(file, backup_folder + '/' + file_name)
     return main_folder, backup_folders
 
 
 def generate_random_files_and_folders(path):
     s = string.lowercase + string.digits
     ''.join(random.sample(s, 10))
+
 
 # endregion
 
@@ -388,7 +543,14 @@ def backup_file(file_name):
 
 
 def get_all_foldernames(path):
-    return [d for d in os.listdir(path) if os.path.isdir(os.path.join(path, d))]
+    # return [f.path for f in os.scandir(path) if f.is_dir()]
+    global skip_folders
+    list_of_files = []
+    for dname, dirs, files in os.walk(path):
+        dirs[:] = [d for d in dirs if d not in skip_folders]
+        for dir_name in dirs:
+            list_of_files.append(os.path.join(dname, dir_name))
+    return list_of_files
 
 
 def get_all_filenames(path):
@@ -443,6 +605,14 @@ def end_refresh_window_thread():
     backup_process_complete = True
 
 
+def get_all_directories_in(path):
+    directories = []
+    for file in os.scandir(path):
+        if file.is_dir():
+            directories.append(file)
+    return directories
+
+
 def delete_directory_if_empty(file_path):
     # deleting folder if its empty now
     directory_of_this = path_to_file(file_path)
@@ -453,9 +623,9 @@ def delete_directory_if_empty(file_path):
         os.rmdir(directory_of_this)
 
 
-def assure_path_exists(path):
+def assure_path_to_file_exists(path_to_file):
     """ Assures this path exists, and makes the path if it does not exist """
-    dir = os.path.dirname(path)
+    dir = os.path.dirname(path_to_file)
     if not os.path.exists(dir):
         os.makedirs(dir)
 
@@ -511,5 +681,3 @@ def move_index_in_dict(list, dict_key, moving_upwards):
     return new_dict
 
 # endregion
-
-
