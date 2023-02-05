@@ -34,7 +34,7 @@ import sys
 
 def testing_start(arguments):
     """ For Running Unit Tests """
-    print("START: " + str(arguments))
+    # print("START: " + str(arguments))
     program.start(arguments)
 
 

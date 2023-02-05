@@ -344,8 +344,8 @@ def show_settings_box():
 
     # endregion
 
-    # previous_log_file_max_count = copy.copy(log_file_max_count)
-    window["-MAX-LOG-FILES-"].update(str(logging.log_file_max_count))
+    # previous_logfilemax = copy.copy(logfilemax)
+    window["-MAX-LOG-FILES-"].update(str(logging.log_file_max))
     # previous_no_logging = copy.copy(no_logging)
     window["-DO-NOT-LOG-"].update(logging.no_logging)
     window["-DELETE-FILES-"].update(files.delete_files)
@@ -408,12 +408,12 @@ def show_settings_box():
         if event == "Save":
             logging.no_logging = values["-DO-NOT-LOG-"]
             files.delete_files = values["-DELETE-FILES-"]
-            logging.log_file_max_count = int(values["-MAX-LOG-FILES-"])
+            logging.log_file_max = int(values["-MAX-LOG-FILES-"])
             saving.save_settings_to_config()
             break
         if event == "Apply":
             logging.no_logging = values["-DO-NOT-LOG-"]
-            logging.log_file_max_count = int(values["-MAX-LOG-FILES-"])
+            logging.log_file_max = int(values["-MAX-LOG-FILES-"])
             previous_skip_files = copy.copy(files.skip_files)
             previous_skip_folders = copy.copy(files.skip_folders)
             # skip_files should already be setup
@@ -513,8 +513,6 @@ def print_help_commands(print_in_console):
     msg = "--------------------------------------------------------------------------------\n" \
           " EZ Folder Backup Parameters:                                                 \n" \
           "                                                                              \n" \
-          "-b path..............................Adds a single backup folder to be used in\n" \
-          "                                     this command. Can be used max five times.\n" \
           "-cleanup on..........................Toggles on deletion of files that no     \n" \
           "                                     longer exist in the main folder.         \n" \
           "-cleanup off.........................Toggles off deletion of files that no    \n" \
@@ -528,8 +526,6 @@ def print_help_commands(print_in_console):
           "                                     help menu.                               \n" \
           "-logfilemax count....................Sets the maximum number of log files     \n" \
           "                                     before the oldest file is deleted.       \n" \
-          "-m path..............................Adds the path to the single main folder  \n" \
-          "                                     to be used for this command.             \n" \
           "-movedown name.......................Moves the input preset down in the list. \n" \
           "-moveup name.........................Moves the input preset up in the list.   \n" \
           "-nologging on........................Toggles on stopping debug logs from being\n" \

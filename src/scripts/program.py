@@ -76,6 +76,7 @@ def backup_operation(window, main_folder, backup_folders):
 
 def run_backup_all(window):
     """ Backs up every saved preset """
+    print("RUNBACKUPALL")
     global presets
     logging.restart_log()
     logging.log_file += "BACKING UP ALL PRESETS:\n"
@@ -110,7 +111,7 @@ def run_commands(commands):
     """ Running commands that were input as parameters in the console """
     global main_folder
     # global no_logging
-    # global log_file_max_count
+    # global log_file_max
     global presets
     presets = saving.load_presets()
     files.skip_files = []
@@ -174,7 +175,7 @@ def run_commands(commands):
     if "-logfilemax" in keys:
         for cmd in commands:
             if cmd[0] == "-logfilemax":
-                logging.log_file_max_count = int(cmd[1])
+                logging.log_file_max = int(cmd[1])
     if "-nologging" in keys:
         for cmd in commands:
             if cmd[0] == "-nologging":

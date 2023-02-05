@@ -48,8 +48,9 @@ def load_settings_from_config():
         with open('settings.cfg', 'r') as f:
             for line in f:
                 line = line.strip()
-                if 'log_file_max_count=' in line:
-                    logging.log_file_max_count = int(line[19: len(line)])
+                if 'log_file_max=' in line:
+                    # logging.log_file_max = int(line[13: len(line)])
+                    logging.log_file_max = int(line[13: len(line)].strip())
                 elif 'no_logging=' in line:
                     logging.no_logging = line[11: len(line)] == 'True'
                 elif 'skip_file=' in line:
@@ -67,7 +68,7 @@ def load_settings_from_config():
 
 
 def save_settings_to_config():
-    settings = "log_file_max_count=" + str(logging.log_file_max_count) + "\n"
+    settings = "log_file_max=" + str(logging.log_file_max) + "\n"
     settings += "no_logging=" + str(logging.no_logging) + "\n"
     settings += "cleanup=" + str(files.delete_files) + "\n"
     for file in files.skip_files:

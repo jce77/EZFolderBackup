@@ -5,25 +5,8 @@ from scripts import trash
 
 no_logging = False  # If true no log files will be created, False by default
 log_file = ""
-log_file_max_count = 50  # starts deleting the oldest file once 50 logs exist
+log_file_max = 50  # starts deleting the oldest file once 50 logs exist
 error_log = []
-
-
-def check_for_log_file_limit():
-    """ Deletes the oldest parameter if there are more than log_file_max_count log files in the folder """
-    global log_file_max_count
-    list = os.listdir("log/")
-    if len(list) > log_file_max_count:
-        oldest_file = list[0]
-        oldest_file_creation_time = os.path.getctime("log/" + str(list[0]))
-        for file in list:
-            creation_time = os.path.getctime("log/" + str(file))
-            if creation_time < oldest_file_creation_time:
-                oldest_file_creation_time = creation_time
-                oldest_file = file
-        print("Deleted oldest log file: " + oldest_file)
-        # os.remove("log/" + oldest_file)
-        trash.trash_file("log/" + oldest_file)
 
 
 def get_last_log_file_path():
@@ -64,17 +47,38 @@ def open_last_log_file():
 
 def print_log(label):
     """ Prints a log file with a label and deletes the oldest parameter if there are
-    more than log_file_max_count log files in the folder """
+    more than logfilemax log files in the folder """
     global no_logging
     global log_file
-    if not no_logging:
-        if not exists("log/"):
-            os.mkdir("log/")
-        filename = label + "-" + str(datetime.now().strftime("[%Y_%m_%d]-[%H_%M_%S]")) + ".txt"
-        with open("log/" + filename, "w",
-                  encoding="utf-8") as f:
-            f.write(log_file)
-        check_for_log_file_limit()
+    if no_logging:
+        return "no_logging", False
+    if not exists("log/"):
+        os.mkdir("log/")
+    filename = label + "-" + str(datetime.now().strftime("[%Y_%m_%d]-[%H_%M_%S]")) + ".txt"
+    with open("log/" + filename, "w",
+              encoding="utf-8") as f:
+        f.write(log_file)
+    trashed_a_log_file = check_for_log_file_limit()
+    return filename, trashed_a_log_file
+
+
+def check_for_log_file_limit():
+    """ Deletes the oldest parameter if there are more than logfilemax log files in the folder. Returns true if
+     a log file was deleted """
+    global log_file_max
+    list = os.listdir("log/")
+    if len(list) > log_file_max:
+        oldest_file = list[0]
+        oldest_file_creation_time = os.path.getctime("log/" + str(list[0]))
+        for file in list:
+            creation_time = os.path.getctime("log/" + str(file))
+            if creation_time < oldest_file_creation_time:
+                oldest_file_creation_time = creation_time
+                oldest_file = file
+        # print("Deleted oldest log file: " + oldest_file)
+        trash.trash_file("log/" + oldest_file)
+        return True
+    return False
 
 
 # region Error logging

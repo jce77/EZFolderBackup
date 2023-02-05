@@ -169,6 +169,8 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
     files_to_process = len(new_files) + len(del_files)
     # endregion
 
+    moved, copied, trashed = 0, 0, 0
+
     # region 4. DOING MOVE OPERATIONS ==================================================================================
     # iterating backwards since things need to be deleted from new_files and del_files possibly
     for i in range(len(new_files) - 1, -1, -1):
@@ -185,6 +187,7 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
                 else:
                     shutil.move(del_files[j].target_path.replace("\\", "/"),
                                 new_files[i].target_path.replace("\\", "/"))
+                moved += 1
                 # --------------------------------------------------- logging
                 msg = "  Moving: '" + get_filename(new_files[i].target_path) + "'"
                 print(msg)
@@ -241,6 +244,7 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
                 window.refresh()
             # os.remove(backup_directory + file_in_backup) # old method that fully deletes file instantly
             trash.trash_file(del_files[i].target_path)
+            trashed += 1
             # deleting folder if its empty now
             delete_directory_if_empty(del_files[i].target_path)
 
@@ -299,7 +303,7 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
             ui.set_loading_bar_visible(window, False)
             # log messages done after message is returned
             return "INSUFFICIENT SPACE"
-
+        copied += 1
         if use_graphics:
             thread1 = threading.Thread(target=copy_file_thread, args=(using_windows, new_files[i].source_path,
                                                                       new_files[i].target_path))
@@ -323,7 +327,11 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
     # endregion
 
     # region 7. Backup Successful, returning
+    final_counts = "Files Moved: (" + str(moved) + ")\nFiles Trashed: (" + str(trashed) + \
+                   ")\nFiles Copied: (" + str(copied) + ')'
+    print(final_counts)
     print("<<< Backup Successful >>>")
+    logging.log_file += final_counts + '\n'
     logging.log_file += "<<< Backup Successful >>>\n\n"
     if use_graphics:
         ui.set_loading_bar_visible(window, False)
@@ -338,6 +346,26 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
 
 import random
 import string
+
+
+def exists_in_cfg(text, cfg_path):
+    f = open(os.getcwd() + cfg_path, "r")
+    for line in f:
+        if line.strip() == text:
+            f.close()
+            return True
+    f.close()
+    return False
+
+
+def get_line_from_cfg(heading):
+    f = open(os.getcwd() + "/settings.cfg", "r")
+    for line in f:
+        if line[0:len(heading)] == heading:
+            f.close()
+            return (line[len(heading) + 1:len(line)]).strip()
+    f.close()
+    return "NotFound"
 
 
 def delete_all_files_in_path(path):
@@ -473,13 +501,13 @@ def create_test_files(test_files_path, main_folder_size_bytes):
     backup_folders = [test_files_path + "/b1", test_files_path + "/b2", test_files_path + "/b3",
                       test_files_path + "/b4", test_files_path + "/b5"]
     main_sub_folders = [main_folder,
-                   main_folder + "/move_to",
-                   main_folder + "/folder1",
-                   main_folder + "/folder1/folder2",
-                   main_folder + "/folder1/folder2/folder3",
-                   main_folder + "/folder4",
-                   main_folder + "/folder4/folder5"
-                   ]
+                        main_folder + "/move_to",
+                        main_folder + "/folder1",
+                        main_folder + "/folder1/folder2",
+                        main_folder + "/folder1/folder2/folder3",
+                        main_folder + "/folder4",
+                        main_folder + "/folder4/folder5"
+                        ]
     print("Setting up test environment...")
     # 1. create files in main folder
     for i in range(7):
