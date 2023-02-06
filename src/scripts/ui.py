@@ -541,11 +541,18 @@ def print_help_commands(print_in_console):
           "                                     Optionally add '-cleanup' to delete files\n" \
           "                                     that no longer exist in the main folder. \n" \
           "-runpreset name......................Runs backup for the input preset.        \n" \
-          "-skipfile filename...................Skips this filename, use -skipfile once  \n" \
-          "                                     per new filename to be skipped.          \n" \
-          "-skipfolder foldername...............Skips this folder name, use -skipfolder  \n" \
+          "-skipfile add filename...............Skips this filename, use -skipfile once  \n" \
+          "                                     per new filename to be skipped. Do not   \n" \
+          "                                     enter a path, just the file name.        \n" \
+          "-skipfile remove filename............Removes a skipped file name.             \n" \
+          "-skipfolder add foldername...........Skips this folder name, use -skipfolder  \n" \
           "                                     once per new filename to be skipped. Do  \n" \
           "                                     not enter a path, just the folder name.  \n" \
+          "-skipfolder remove foldername........Removes a skipped folder name.           \n" \
+          "-skippath add pathname...............Skips this specific location on your     \n" \
+          "                                     system from being checked for backup.    \n" \
+          "                                     Either a file or a folder.               \n" \
+          "-skippath remove pathname............Removes a skipped path name.             \n" \
           "-support.............................Show support email for questions.        \n" \
           "-version.............................Show the current version of this program.\n" \
           "-viewlog.............................Show latest log file.                    \n" \

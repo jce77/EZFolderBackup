@@ -41,6 +41,24 @@ def sort_arguments(arguments):
     return commands
 
 
+def position_in_presets(preset_name):
+    """ Returns index in list of presets, or -1 if not found """
+    if not exists('presets/presets.cfg'):
+        print("Presets file does not exist")
+        return -1
+    position = -1
+    with open('presets/presets.cfg', 'r') as f:
+        for line in f:
+            line = line.strip()
+            if 'preset=' in line:
+                position += 1
+                if line[7: len(line)].strip() == preset_name:
+                    return position
+    # not found
+    print("Preset not found")
+    return -1
+
+
 def load_settings_from_config():
     if exists('settings.cfg'):
         files.skip_files = []

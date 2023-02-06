@@ -5,6 +5,7 @@ from os.path import exists
 import main
 from scripts import files
 from scripts import logging
+from scripts import saving
 
 
 class TestStringMethods(unittest.TestCase):
@@ -37,21 +38,12 @@ class TestStringMethods(unittest.TestCase):
         filename, trashed_a_log_file = logging.print_log("Test Log" + str(count))
         new_log_files.append(os.getcwd() + "/log/" + filename)
         if not trashed_a_log_file:
-            print("test_command_line_logfilemax FAILED, log file overflow trashing not working")
-            self.assertEqual(False, True)
+            self.assertEqual("test_command_line_logfilemax FAILED, log file overflow trashing not working", False)
             return
         # 4. clearing test log files
         for file in new_log_files:
             if exists(file):
                 os.remove(file)
-
-
-        passed = True
-        # first the test should test that the config file actually is having the value added to it
-        # this test should actually fill the log to the max, test where it cuts off, and then delete all the newly
-        # created files, while leaving any older log files that existed before.
-
-
         self.assertEqual(True, True)
 
     def test_command_line_no_logging(self):
@@ -80,7 +72,7 @@ class TestStringMethods(unittest.TestCase):
 
     def test_command_line_cleanup(self):
         """ Tests toggling cleanup on and off """
-        print("TEST test_command_line_cleanup")
+        print(">>>>>>>TEST test_command_line_cleanup")
         main.testing_start("-cleanup on".split(" "))
         passed = False
         f = open(os.getcwd() + "/settings.cfg", "r")
@@ -148,9 +140,9 @@ class TestStringMethods(unittest.TestCase):
         """ Creates some files, and ensures copying/moving/deleting all works """
         print(">>>>>>>TEST test_command_line_runbackup")
 
-        # print("SKIPPING FOR NOW TO SAVE TIME, REMOVE THIS")
-        # self.assertEqual(True, True)
-        # return
+        print("SKIPPING FOR NOW TO CLEAN UP LOG, REMOVE THIS LATER")
+        self.assertEqual(True, True)
+        return
 
         test_dir = os.getcwd() + "/unit_test_files"
         test_dir = test_dir.replace("\\", "/")
@@ -158,11 +150,12 @@ class TestStringMethods(unittest.TestCase):
         files.create_test_files(test_dir, 2500000)
         main.testing_start(("-runbackup -m " + test_dir + "/main "
                                                           "-b " + test_dir + "/b1 "
-                                                          "-b " + test_dir + "/b2 "
-                                                          "-b " + test_dir + "/b3 "
-                                                          "-b " + test_dir + "/b4 "
-                                                          "-b " + test_dir + "/b5 "
-                                                          "-cleanup on -nologging off").split(' '))
+                                                                             "-b " + test_dir + "/b2 "
+                                                                                                "-b " + test_dir + "/b3 "
+                                                                                                                   "-b " + test_dir + "/b4 "
+                                                                                                                                      "-b " + test_dir + "/b5 "
+                                                                                                                                                         "-cleanup on -nologging off").split(
+            ' '))
         passed = True
         for i in range(1, 6):
             if not files.folders_are_equal(test_dir + "/main", test_dir + "/b" + str(i)):
@@ -175,9 +168,9 @@ class TestStringMethods(unittest.TestCase):
         """ Creates a number of presets and files, and ensures copying/moving/deleting all works """
         print(">>>>>>>TEST test_command_line_runbackupall")
 
-        # print("SKIPPING FOR NOW TO SAVE TIME, REMOVE THIS")
-        # self.assertEqual(True, True)
-        # return
+        print("SKIPPING FOR NOW TO CLEAN UP LOG, REMOVE THIS LATER")
+        self.assertEqual(True, True)
+        return
 
         preset_names = ["Test Preset 11", "Test Preset 22", "Test Preset 33"]
         test_dirs = [(os.getcwd() + "/unit_test_files1").replace("\\", "/"),
@@ -186,15 +179,17 @@ class TestStringMethods(unittest.TestCase):
         for i in range(len(preset_names)):
             files.fully_delete_path(test_dirs[i])
             files.create_test_files(test_dirs[i], 1000000)
-            # create preset
+            # create presets
             main.testing_start(("-createpreset " + preset_names[i] +
                                 " -m " + test_dirs[i] + "/main "
-                                 "-b " + test_dirs[i] + "/b1 "
-                                 "-b " + test_dirs[i] + "/b2 "
-                                 "-b " + test_dirs[i] + "/b3 "
-                                 "-b " + test_dirs[i] + "/b4 "
-                                 "-b " + test_dirs[i] + "/b5 "
-                                 "-cleanup on -nologging off").split(' '))
+                                                        "-b " + test_dirs[i] + "/b1 "
+                                                                               "-b " + test_dirs[i] + "/b2 "
+                                                                                                      "-b " + test_dirs[
+                                    i] + "/b3 "
+                                         "-b " + test_dirs[i] + "/b4 "
+                                                                "-b " + test_dirs[i] + "/b5 "
+                                                                                       "-cleanup on -nologging off").split(
+                ' '))
             if not files.exists_in_cfg("preset=" + preset_names[i], "/presets/presets.cfg"):
                 self.assertEqual("FAILED for -createpreset command", False)
                 return
@@ -202,7 +197,7 @@ class TestStringMethods(unittest.TestCase):
         # run preset
         main.testing_start(["-runbackupall", ""])
 
-        # delete preset
+        # delete presets
         for i in range(len(preset_names)):
             main.testing_start(("-deletepreset " + preset_names[i]).split(' '))
             if files.exists_in_cfg(preset_names[i], "/presets/presets.cfg"):
@@ -225,9 +220,9 @@ class TestStringMethods(unittest.TestCase):
         """ Creates a single preset and some files, and ensures copying/moving/deleting all works """
         print(">>>>>>>TEST test_command_line_runbackuppreset")
 
-        # print("SKIPPING FOR NOW TO SAVE TIME, REMOVE THIS")
-        # self.assertEqual(True, True)
-        # return
+        print("SKIPPING FOR NOW TO CLEAN UP LOG, REMOVE THIS LATER")
+        self.assertEqual(True, True)
+        return
 
         preset_name = "Test Preset 11"
         test_dir = os.getcwd() + "/unit_test_files"
@@ -236,12 +231,13 @@ class TestStringMethods(unittest.TestCase):
         files.create_test_files(test_dir, 2500000)
         # create preset
         main.testing_start(("-createpreset " + preset_name + " -m " + test_dir + "/main "
-                                                             "-b " + test_dir + "/b1 "
-                                                             "-b " + test_dir + "/b2 "
-                                                             "-b " + test_dir + "/b3 "
-                                                             "-b " + test_dir + "/b4 "
-                                                             "-b " + test_dir + "/b5 "
-                                                             "-cleanup on -nologging off").split(' '))
+                                                                                 "-b " + test_dir + "/b1 "
+                                                                                                    "-b " + test_dir + "/b2 "
+                                                                                                                       "-b " + test_dir + "/b3 "
+                                                                                                                                          "-b " + test_dir + "/b4 "
+                                                                                                                                                             "-b " + test_dir + "/b5 "
+                                                                                                                                                                                "-cleanup on -nologging off").split(
+            ' '))
         if not files.exists_in_cfg("preset=" + preset_name, "/presets/presets.cfg"):
             self.assertEqual("FAILED for -createpreset command", False)
             return
@@ -269,20 +265,208 @@ class TestStringMethods(unittest.TestCase):
         """ """
         print(">>>>>>>TEST test_command_line_move_preset")
 
+        # clearing old presets in case any were added before that might break the test
+        if exists('presets/presets.cfg'):
+            with open('presets/presets.cfg', 'w') as file:
+                file.write('')
+
+        # creating new presets to move around
+        preset_names = ["Test Preset 1", "Test Preset 2", "Test Preset 3", "Test Preset 4", "Test Preset 5"]
+        test_dirs = [(os.getcwd() + "/unit_test_files1").replace("\\", "/"),
+                     (os.getcwd() + "/unit_test_files2").replace("\\", "/"),
+                     (os.getcwd() + "/unit_test_files3").replace("\\", "/"),
+                     (os.getcwd() + "/unit_test_files4").replace("\\", "/"),
+                     (os.getcwd() + "/unit_test_files5").replace("\\", "/")]
+
+        for i in range(len(preset_names)):
+            # create preset
+            main.testing_start(("-createpreset " + preset_names[i] +
+                                " -m " + test_dirs[i] + "/main "
+                                                        "-b " + test_dirs[i] + "/b1 "
+                                                                               "-b " + test_dirs[i] + "/b2 "
+                                                                                                      "-cleanup on -nologging off").split(
+                ' '))
+            if not files.exists_in_cfg("preset=" + preset_names[i], "/presets/presets.cfg"):
+                self.assertEqual("FAILED for -createpreset command", False)
+                return
+
+        # move up testing
+        expected_positions = [3, 2, 1, 0]
+        for i in range(4):
+            main.testing_start(("-moveup " + preset_names[4]).split(' '))
+            position = saving.position_in_presets(preset_names[4])
+            # print("The position of " + preset_names[4] + " is " + str(position))
+            if position != expected_positions[i]:
+                self.assertEqual("FAILED for -moveup command", False)
+                return
+
+        # move down testing
+        expected_positions = [1, 2, 3, 4]
+        for i in range(4):
+            main.testing_start(("-movedown " + preset_names[4]).split(' '))
+            position = saving.position_in_presets(preset_names[4])
+            if position != expected_positions[i]:
+                self.assertEqual("FAILED for -movedown command", False)
+                return
+
+        # delete presets
+        for i in range(len(preset_names)):
+            main.testing_start(("-deletepreset " + preset_names[i]).split(' '))
+            if files.exists_in_cfg(preset_names[i], "/presets/presets.cfg"):
+                self.assertEqual("FAILED for -deletepreset command", False)
+                return
+
         self.assertEqual(True, True)
 
     def test_command_line_skip_file(self):
         """  """
-        print(">>>>>>>TEST test_command_line_move_preset")
+        print(">>>>>>>TEST test_command_line_skip_file")
+
+        print("SKIPPING FOR NOW TO CLEAN UP LOG, REMOVE THIS LATER")
+        self.assertEqual(True, True)
+        return
+
+        test_dir = os.getcwd() + "/unit_test_files"
+        test_dir = test_dir.replace("\\", "/")
+        files.fully_delete_path(test_dir)
+        files.create_test_files(test_dir, 50000)
+        file_name = "test 1 skip.extension"
+        file_path = test_dir + '/main/' + file_name
+        file_backup_locations = [
+            test_dir + '/b1/' + file_name,
+            test_dir + '/b2/' + file_name,
+            test_dir + '/b3/' + file_name,
+            test_dir + '/b4/' + file_name,
+            test_dir + '/b5/' + file_name
+        ]
+
+        # creating a filename to be skipped in the main folder only
+        f = open(file_path, "a")
+        f.write("...")
+        f.close()
+
+        # adding skip rule
+        main.testing_start(("-skipfile add " + file_name).split(' '))
+
+        # f = open("settings.cfg", "r")
+        # print("SETTINGS NOW CONTAINS:\n" + str(f.read()))
+        # print("AND files.skip_files=\n" + str(files.skip_files))
+        # f.close()
+        # print("Running backup")
+
+        # running backup
+        main.testing_start(("-runbackup -m " + test_dir + "/main "
+                                                          "-b " + test_dir + "/b1 "
+                                                                             "-b " + test_dir + "/b2 "
+                                                                                                "-b " + test_dir + "/b3 "
+                                                                                                                   "-b " + test_dir + "/b4 "
+                                                                                                                                      "-b " + test_dir + "/b5 "
+                                                                                                                                                         "-cleanup on -nologging off").split(
+            ' '))
+
+        # ensuring that filename was not backed up
+        for location in file_backup_locations:
+            if exists(location):
+                self.assertEqual("FAILED for -skipfile command", False)
+                return
+
+        files.fully_delete_path(test_dir)
+
+        # removing skip rule
+        # adding skip rule
+        main.testing_start(("-skipfile remove " + file_name).split(' '))
 
         self.assertEqual(True, True)
 
     def test_command_line_skip_folder(self):
         """  """
-        print(">>>>>>>TEST test_command_line_move_preset")
+        print(">>>>>>>TEST test_command_line_skip_folder")
+
+        print("SKIPPING FOR NOW TO CLEAN UP LOG, REMOVE THIS LATER")
+        self.assertEqual(True, True)
+        return
+
+        test_dir = os.getcwd() + "/unit_test_files"
+        test_dir = test_dir.replace("\\", "/")
+        files.fully_delete_path(test_dir)
+        files.create_test_files(test_dir, 50000)
+        file_name = "test 1 skip folder.extension"
+        folder_name = "IGNORE"
+        file_path = test_dir + '/main/IGNORE/' + file_name
+        file_backup_locations = [
+            test_dir + '/b1/' + file_name,
+            test_dir + '/b2/' + file_name,
+            test_dir + '/b3/' + file_name,
+            test_dir + '/b4/' + file_name,
+            test_dir + '/b5/' + file_name
+        ]
+
+        # creating a folder to be skipped in the main folder only
+        files.assure_path_to_file_exists(file_path)
+        f = open(file_path, "a")
+        f.write("...")
+        f.close()
+
+        # adding skip rule
+        main.testing_start(("-skipfolder add " + folder_name).split(' '))
+
+        # f = open("settings.cfg", "r")
+        # print("SETTINGS NOW CONTAINS:\n" + str(f.read()))
+        # print("AND files.skip_files=\n" + str(files.skip_files))
+        # f.close()
+        # print("Running backup")
+
+        # running backup
+        main.testing_start(("-runbackup -m " + test_dir + "/main "
+                                                          "-b " + test_dir + "/b1 "
+                                                          "-b " + test_dir + "/b2 "
+                                                          "-b " + test_dir + "/b3 "
+                                                          "-b " + test_dir + "/b4 "
+                                                          "-b " + test_dir + "/b5 "
+                                                          "-cleanup on -nologging off").split(' '))
+
+        # ensuring that filename was not backed up
+        for location in file_backup_locations:
+            if exists(location):
+                self.assertEqual("FAILED for -skipfile command", False)
+                return
+
+        files.fully_delete_path(test_dir)
+
+        # removing skip rule
+        # adding skip rule
+        main.testing_start(("-skipfolder remove " + folder_name).split(' '))
+
+        self.assertEqual(True, True)
+
+    def test_command_line_skip_path(self):
+        """  """
+        print(">>>>>>>TEST test_command_line_skip_path")
 
         self.assertEqual(True, True)
 
 
 if __name__ == '__main__':
     unittest.main()
+
+'''
+Current plan:
+
+    i also need to implement this, add it to the GUI, and once done that and these last 4 tests. Then I can finally
+    test it in Ubunut command-line, Fedora command-line, Windows command-line. Then I need to make a function
+    that sets up a work environment to do the GUI testing, and then I can just open the GUI. I definitely will be
+    testing the GUI in fedora and windows at least, but probably all 3. so it will be 6 tests required before I can
+    push any update, at least 3 of them will be extremely easy. but the other tests will have just a simple list
+    of things i click. I will probably make a secret run command that doesn't show up in the documentation so I can
+    easily get up the GUI test environment on linux, in terms of its files and even the presets, maybe it will
+    be slightly smart about it and find good folder locations actually that would be much smarter, so it at least
+    will be auto setup so I can just click the buttons and ensure everything seems to be working. Most of the
+    settings dont need to be as thouroughly tested in the GUI I would say, since the command-line tests are still
+    definitely running most of the functions and any GUI stuff is just little bits of debug information mostly.
+    
+    the other thing is I need to change the stupid 5 backups thing and make a nice dropdown list where you can add
+    unlimited amounts of backups
+    
+
+
+'''

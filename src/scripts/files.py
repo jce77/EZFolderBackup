@@ -427,7 +427,7 @@ def fully_delete_path(path):
 
 def fully_delete_files_in_path(path):
     """ WARNING, this is for unit testing ONLY and permanently deletes files """
-    files = get_all_filenames(path)
+    files = force_get_all_filenames(path)
     for file in files:
         os.remove(file)
 
@@ -442,7 +442,7 @@ def fully_delete_folders_in_path(path):
     # print(str(path.split("/")))
 
     dist_from_path_to_root = len(path.split("/"))
-    folders = get_all_foldernames(path)
+    folders = force_get_all_foldernames(path)
     for folder in folders:
         # this folder is not empty
         if len(os.listdir(folder)) > 0:
@@ -570,6 +570,15 @@ def backup_file(file_name):
         shutil.copyfile(file_name, file_name + '.old')
 
 
+def force_get_all_foldernames(path):
+    list_of_files = []
+    for dname, dirs, files in os.walk(path):
+        dirs[:] = [d for d in dirs]
+        for dir_name in dirs:
+            list_of_files.append(os.path.join(dname, dir_name))
+    return list_of_files
+
+
 def get_all_foldernames(path):
     # return [f.path for f in os.scandir(path) if f.is_dir()]
     global skip_folders
@@ -581,14 +590,29 @@ def get_all_foldernames(path):
     return list_of_files
 
 
+def force_get_all_filenames(path):
+    """ Returns all filenames inside the given path and its sub-folders, while not accounting for
+     skipped file names, folder names, and paths """
+    # print("Called get_all_filenames, skip_files=" + str(skip_files))
+    list_of_files = []
+    for dname, dirs, files in os.walk(path):
+        dirs[:] = [d for d in dirs]
+        for fname in files:
+            list_of_files.append(os.path.join(dname, fname))
+    return list_of_files
+
+
 def get_all_filenames(path):
     """ Returns all filenames inside the given path and its sub-folders """
     global skip_folders
+    global skip_files
+    # print("Called get_all_filenames, skip_files=" + str(skip_files))
     list_of_files = []
     for dname, dirs, files in os.walk(path):
         dirs[:] = [d for d in dirs if d not in skip_folders]
         for fname in files:
-            list_of_files.append(os.path.join(dname, fname))
+            if fname not in skip_files:
+                list_of_files.append(os.path.join(dname, fname))
     return list_of_files
 
 

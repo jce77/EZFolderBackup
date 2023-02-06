@@ -10,9 +10,9 @@ from os.path import exists
 
 all_commands = ["-createpreset", "-b", "-deletepreset", "-h", "-help", "-hf", "-logfilemax", "-m", "-moveup",
                 "-movedown",
-                "-nologging", "-runbackup", "-runbackupall", "-runpreset", "-skipfile", "-support", "-version",
+                "-nologging", "-runbackup", "-runbackupall", "-runpreset", "-support", "-version",
                 "-viewlog",
-                "-viewpresets", "-skipfolder"]
+                "-viewpresets", "-skipfile", "-skipfolder", "-skippath"]
 backup_folders = []
 
 main_folder = ""
@@ -114,8 +114,6 @@ def run_commands(commands):
     # global log_file_max
     global presets
     presets = saving.load_presets()
-    files.skip_files = []
-    files.skip_folders = []
     keys = []
     for command in commands:
         keys.append(command[0])
@@ -187,12 +185,37 @@ def run_commands(commands):
     if "-skipfile" in keys:
         for cmd in commands:
             if cmd[0] == "-skipfile":
-                files.skip_files.append(cmd[1])
+                if cmd[1][0:3] == "add":
+                    name = cmd[1][4:len(cmd[1])]
+                    if name not in files.skip_files:
+                        files.skip_files.append(name)
+                elif cmd[1][0:6] == "remove":
+                    remove = cmd[1][7:len(cmd[1])]
+                    for i in range(len(files.skip_files)):
+                        if files.skip_files[i] == remove:
+                            del files.skip_files[i]
+                else:
+                    print("-skipfile requires the add or remove command, see -help for details.")
     if "-skipfolder" in keys:
         for cmd in commands:
             if cmd[0] == "-skipfolder":
-                files.skip_folders.append(cmd[1])
+                if cmd[1][0:3] == "add":
+                    name = cmd[1][4:len(cmd[1])]
+                    if name not in files.skip_folders:
+                        files.skip_folders.append(name)
+                elif cmd[1][0:6] == "remove":
+                    remove = cmd[1][7:len(cmd[1])]
+                    for i in range(len(files.skip_folders)):
+                        if files.skip_folders[i] == remove:
+                            del files.skip_folders[i]
+                else:
+                    print("-skipfolder requires the add or remove command, see -help for details.")
+        # for cmd in commands:
+        #     if cmd[0] == "-skipfolder":
+        #         files.skip_folders.append(cmd[1])
     saving.save_settings_to_config()
+
+
     # Presets
     if "-createpreset" in keys:
         preset_key = ""
@@ -295,6 +318,10 @@ def start(arguments):
         print(msg)
         logging.print_to_log("Failed_To_Run", msg)
         return
+
+    # loading settings
+    saving.load_settings_from_config()
+
     # Running with graphics
     if ui.using_gui:
         if not eula.eula_agreed_to():
@@ -312,9 +339,7 @@ def start(arguments):
             print("PySimpleGui is not installed, please install using pip before using the graphical interface.\n "
                   "Otherwise run the parameter -help to see all command line-only parameters")
             sys.exit(1)
-        # only loading settings in the GUI for now, otherwise they must be entered with run command
-        # to be used
-        saving.load_settings_from_config()
+        # saving.load_settings_from_config()
         ui.show_gui(using_windows)
     # Running with command-line parameters only
     else:
