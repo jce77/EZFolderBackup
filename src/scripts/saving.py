@@ -115,6 +115,9 @@ def load_selected_preset(preset, window, clicked_key):
     """ Shows the clicked backup preset in the GUI """
     window["-CURRENT-PRESET-NAME-"].update(clicked_key)
     window["-MAIN-FOLDER-"].update(preset['main_folder'])
+
+    window["-BACKUP-LIST-"].update(values=preset['backup_folders'])
+    '''
     count = 1
     for backup_folder in preset['backup_folders']:
         if count == 1:
@@ -130,6 +133,7 @@ def load_selected_preset(preset, window, clicked_key):
         else:
             break  # you only get 5 backup folders per preset
         count += 1
+    
     while count < 6:
         if count == 1:
             window["-BACKUP1-"].update(backup_folder)
@@ -142,6 +146,7 @@ def load_selected_preset(preset, window, clicked_key):
         elif count == 5:
             window["-BACKUP5-"].update("")
         count += 1
+    '''
 
 
 def add_preset(name, main_folder, backup_folders):

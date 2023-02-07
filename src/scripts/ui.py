@@ -17,6 +17,7 @@ previous_skip_folders = []
 
 def get_backup_folders_from_gui(values):
     """ Returns all the backup folder names that were entered into the GUI """
+    print("16123215 IMPLEMENT THIS")
     backup_folders = []
     if len(values["-BACKUP1-"]) > 0:
         backup_folders.append(values["-BACKUP1-"])
@@ -51,17 +52,23 @@ def show_gui(using_windows):
         cancel_button_name = " Cancel"
 
     left_column = [
-        [
-            gui.Text("Main Folder:"),
-            gui.In(size=(25, 1), enable_events=True, key="-MAIN-FOLDER-"),
-            gui.FolderBrowse(),
-        ],
+        [gui.Frame('Backup Preset', [[gui.Button("New", size=(14, 1), image_filename='images/new_preset.png',
+                                                 mouseover_colors=('#CBCBCB', '#333333')),
+                                      gui.Button("Save", size=(14, 1), image_filename='images/save_preset.png',
+                                                 mouseover_colors=('#CBCBCB', '#333333')),
+                                      gui.Button("Delete", size=(14, 1), image_filename='images/delete_preset.png',
+                                                 mouseover_colors=('#CBCBCB', '#333333'))]],
+                   border_width=1)],
+
+        [gui.Text("Preset Name", font=h2_font)],
+        [gui.In(size=(45, 1), enable_events=True, key="-CURRENT-PRESET-NAME-")],
+
         [
             gui.Text("Backup Presets", font=h1_font),
         ],
         [
             gui.Listbox(
-                values=preset_keys, enable_events=True, size=(40, 20), key="-PRESET LIST-"
+                values=preset_keys, enable_events=True, size=(55, 18), key="-PRESET LIST-"
             )
         ],
         [gui.Frame('', [
@@ -77,47 +84,40 @@ def show_gui(using_windows):
     ]
 
     right_column = [
+        [gui.Text("Main Folder", font=h2_font)],
+        [
+            gui.In(size=(35, 1), enable_events=True, key="-MAIN-FOLDER-"),
+            gui.FolderBrowse(),
+        ],
         [gui.Text("Backup Locations", font=h1_font)],
         [
-            gui.Text("Backup 1:"),
-            gui.In(size=(25, 1), enable_events=True, key="-BACKUP1-"),
-            gui.FolderBrowse(),
+            gui.Listbox(
+                values=[], enable_events=True, size=(55, 10), key="-BACKUP-LIST-"
+            )
         ],
-        [
-            gui.Text("Backup 2:"),
-            gui.In(size=(25, 1), enable_events=True, key="-BACKUP2-"),
-            gui.FolderBrowse(),
-        ],
-        [
-            gui.Text("Backup 3:"),
-            gui.In(size=(25, 1), enable_events=True, key="-BACKUP3-"),
-            gui.FolderBrowse(),
-        ],
-        [
-            gui.Text("Backup 4:"),
-            gui.In(size=(25, 1), enable_events=True, key="-BACKUP4-"),
-            gui.FolderBrowse(),
-        ],
-        [
-            gui.Text("Backup 5:"),
-            gui.In(size=(25, 1), enable_events=True, key="-BACKUP5-"),
-            gui.FolderBrowse(),
-        ],
-        [gui.Text("Preset Name", font=h2_font)],
-        [gui.In(size=(25, 1), enable_events=True, key="-CURRENT-PRESET-NAME-")],
 
-        [gui.Frame('Backup Preset', [[gui.Button("New", size=(14, 1), image_filename='images/new_preset.png',
+        [gui.Text("New Backup Location", font=h2_font)],
+        [gui.In(size=(45, 1), enable_events=True, key="-NEW-BACKUP-LOCATION-"),
+         gui.FolderBrowse(),
+         ],
+
+
+
+        [gui.Frame('Backup Location', [[gui.Button("New", key="-NEW-BACKUP-", size=(14, 1), image_filename='images/new_preset.png',
                                                  mouseover_colors=('#CBCBCB', '#333333')),
-                                      gui.Button("Save", size=(14, 1), image_filename='images/save_preset.png',
+                                      gui.Button("Add", key="-ADD-NEW-BACKUP-", size=(14, 1), image_filename='images/save_preset.png',
                                                  mouseover_colors=('#CBCBCB', '#333333')),
-                                      gui.Button("Delete", size=(14, 1), image_filename='images/delete_preset.png',
+                                      gui.Button("Remove", key="-REMOVE-NEW-BACKUP-", size=(14, 1), image_filename='images/delete_preset.png',
                                                  mouseover_colors=('#CBCBCB', '#333333'))]],
                    border_width=1)],
+
+
+
         [gui.Frame('', [[gui.Button("Run Backup", size=(14, 1), image_filename='images/backup_files.png',
                                     mouseover_colors=('#CBCBCB', '#333333')),
                          gui.Button("View Log", size=(14, 1), image_filename='images/view_log.png',
                                     mouseover_colors=('#CBCBCB', '#333333')),
-                         gui.Button("Backup All", size=(14, 1), image_filename='images/backup_files.png',
+                         gui.Button("Backup All", size=(14, 1), image_filename='images/backup_all.png',
                                     mouseover_colors=('#CBCBCB', '#333333'))
                          ]],
                    border_width=0)],
@@ -214,9 +214,29 @@ def show_gui(using_windows):
                 main.run_backup(window, values["-MAIN-FOLDER-"], use_backup_folders)
             else:
                 window["-ERROR-TEXT-"].update("You must set the main drive and at least one backup drive")
+        elif event == "-NEW-BACKUP-":
+            window["-NEW-BACKUP-LOCATION-"].update("")
         elif event == "New":
             clear_preset_info(window)
-        elif event == "Delete":
+        elif event == "-ADD-NEW-BACKUP-":  # adding a backup location to the right
+            print("Added backup location from GUI: " + str(values["-NEW-BACKUP-LOCATION-"]))
+            new_values = window["-BACKUP-LIST-"].get_list_values()
+            if len(values["-NEW-BACKUP-LOCATION-"]) > 0 and values["-NEW-BACKUP-LOCATION-"] not in new_values:
+                new_values.append(values["-NEW-BACKUP-LOCATION-"])
+                window["-BACKUP-LIST-"].update(values=new_values)
+                # refresh_backup_locations_list(window, main.presets)
+                window["-BACKUP-LIST-"].set_value(values["-NEW-BACKUP-LOCATION-"])
+        elif event == "-REMOVE-NEW-BACKUP-":  # deleting a backup location from the right
+            new_values = window["-BACKUP-LIST-"].get_list_values()
+            for i in range(len(new_values)):
+                if new_values[i] == values["-NEW-BACKUP-LOCATION-"]:
+                    del new_values[i]
+                    break
+            window["-BACKUP-LIST-"].update(values=new_values)
+            print("Deleted backup location from GUI: " + str(values["-NEW-BACKUP-LOCATION-"]))
+            # refresh_backup_locations_list(window, main.presets)
+            window["-NEW-BACKUP-LOCATION-"].update("")
+        elif event == "Delete":  # deleting a preset from the left
             if values["-CURRENT-PRESET-NAME-"] in main.presets:
                 if not question_box("Delete preset '" + str(values["-CURRENT-PRESET-NAME-"]) + "'?", 80, 15):
                     continue
@@ -238,17 +258,7 @@ def show_gui(using_windows):
                         continue
                 main.presets[preset_key] = {}  # {"main_folder": values["-MAIN-FOLDER-"], "backup_folders": []}
                 main.presets[preset_key]["main_folder"] = values["-MAIN-FOLDER-"]
-                main.presets[preset_key]["backup_folders"] = []
-                if len(values["-BACKUP1-"].strip()) > 0:
-                    main.presets[preset_key]["backup_folders"].append(values["-BACKUP1-"])
-                if len(values["-BACKUP2-"].strip()) > 0:
-                    main.presets[preset_key]["backup_folders"].append(values["-BACKUP2-"])
-                if len(values["-BACKUP3-"].strip()) > 0:
-                    main.presets[preset_key]["backup_folders"].append(values["-BACKUP3-"])
-                if len(values["-BACKUP4-"].strip()) > 0:
-                    main.presets[preset_key]["backup_folders"].append(values["-BACKUP4-"])
-                if len(values["-BACKUP5-"].strip()) > 0:
-                    main.presets[preset_key]["backup_folders"].append(values["-BACKUP5-"])
+                main.presets[preset_key]["backup_folders"] = window["-BACKUP-LIST-"].get_list_values()
                 if len(main.presets[preset_key]["backup_folders"]) == 0:
                     window["-ERROR-TEXT-"].update("Enter at least one backup folder")
                 else:
@@ -256,7 +266,19 @@ def show_gui(using_windows):
                     saving.save_presets_to_config(main.presets)
                     preset_name = values["-CURRENT-PRESET-NAME-"]
                     window["-PRESET LIST-"].set_value(preset_name)
-        elif event == "-PRESET LIST-":  # A file was chosen from the listbox
+
+        elif event == "-BACKUP-LIST-":  # A backup location was chosen from the listbox on the right
+            # list_values = window["-BACKUP-LIST-"].get_list_values()
+            if len(values["-BACKUP-LIST-"]) > 0:
+                clicked_key = str(values["-BACKUP-LIST-"][0])
+                window["-NEW-BACKUP-LOCATION-"].update(value=values["-BACKUP-LIST-"][0])
+                try:
+                    filename = os.path.join(
+                        values["-MAIN-FOLDER-"], values["-BACKUP-LIST-"][0]
+                    )
+                except:
+                    pass
+        elif event == "-PRESET LIST-":  # A file was chosen from the listbox on the left
             if len(values["-PRESET LIST-"]) > 0:
                 clicked_key = str(values["-PRESET LIST-"][0])
                 preset = main.presets[clicked_key]
@@ -271,20 +293,29 @@ def show_gui(using_windows):
     window.close()
 
 
+def clear_backup_locations_box(window):
+    window["-BACKUP-LIST-"].update(values=[])
+
+
 def clear_preset_info(window):
     window["-MAIN-FOLDER-"].update("")
-    window["-BACKUP1-"].update("")
-    window["-BACKUP2-"].update("")
-    window["-BACKUP3-"].update("")
-    window["-BACKUP4-"].update("")
-    window["-BACKUP5-"].update("")
+    clear_backup_locations_box(window)
     window["-CURRENT-PRESET-NAME-"].update("")
+    window["-NEW-BACKUP-LOCATION-"].update("")
 
 
 def set_loading_bar_visible(window, value):
     window["-BAR-"].update(visible=value)
     window[" "].update(visible=value)
     # window["Cancel"].update(visible=value)
+
+
+def refresh_backup_locations_list(window, backup_locations):
+    """ Updates the list of backup locations in the right column """
+    backup_location_keys = []
+    for location in backup_locations:
+        backup_location_keys.append(str(location))
+    window["-BACKUP-LIST-"].update(values=backup_location_keys)
 
 
 def refresh_presets_list(window, presets):
