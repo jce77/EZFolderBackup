@@ -4,8 +4,10 @@ EZ Folder Backup v1.1.4
 Update v1.1.4
 - Added setting to make deleting files optional, and off by default
 - Deleting a preset now clears its backup locations and name
-- Added a button to run every single backup preset
+- Added a button to run all backup presets
 - Added command-line option to toggle on and off cleanup and nologging
+- Failing to trash a folder that contains ignored file/folder names results in a logged error but continues the backup
+- Changed backup locations to a list box instead of the five inputs
 
 
 

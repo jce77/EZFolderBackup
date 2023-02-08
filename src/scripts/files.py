@@ -671,8 +671,15 @@ def delete_directory_if_empty(file_path):
     dir_list = os.listdir(directory_of_this)
     if len(dir_list) == 0:
         print("  Deleting the folder since its empty now")
-        logging.log_file += "  Deleting the folder since its empty now\n";
-        os.rmdir(directory_of_this)
+        logging.log_file += "  Deleting the folder since its empty now\n"
+        try:
+            os.rmdir(directory_of_this)
+        except Exception as e:
+            error_msg = "ERROR, cannot delete the directory '" + directory_of_this + \
+                        "', which is likely not empty. Exception: " + str(e)
+            print(error_msg)
+            logging.log_file += error_msg + '\n'
+            logging.log_error(error_msg)
 
 
 def assure_path_to_file_exists(path_to_file):

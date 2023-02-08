@@ -105,9 +105,9 @@ def show_gui(using_windows):
 
         [gui.Frame('Backup Location', [[gui.Button("New", key="-NEW-BACKUP-", size=(14, 1), image_filename='images/new_preset.png',
                                                  mouseover_colors=('#CBCBCB', '#333333')),
-                                      gui.Button("Add", key="-ADD-NEW-BACKUP-", size=(14, 1), image_filename='images/save_preset.png',
+                                      gui.Button("Add", key="-ADD-NEW-BACKUP-", size=(14, 1), image_filename='images/add.png',
                                                  mouseover_colors=('#CBCBCB', '#333333')),
-                                      gui.Button("Remove", key="-REMOVE-NEW-BACKUP-", size=(14, 1), image_filename='images/delete_preset.png',
+                                      gui.Button("Remove", key="-REMOVE-NEW-BACKUP-", size=(14, 1), image_filename='images/remove.png',
                                                  mouseover_colors=('#CBCBCB', '#333333'))]],
                    border_width=1)],
 
@@ -216,6 +216,8 @@ def show_gui(using_windows):
                 window["-ERROR-TEXT-"].update("You must set the main drive and at least one backup drive")
         elif event == "-NEW-BACKUP-":
             window["-NEW-BACKUP-LOCATION-"].update("")
+            window["-BACKUP-LIST-"].update(set_to_index=[])
+            window["-BACKUP-LIST-"].metadata = []
         elif event == "New":
             clear_preset_info(window)
         elif event == "-ADD-NEW-BACKUP-":  # adding a backup location to the right
@@ -272,12 +274,6 @@ def show_gui(using_windows):
             if len(values["-BACKUP-LIST-"]) > 0:
                 clicked_key = str(values["-BACKUP-LIST-"][0])
                 window["-NEW-BACKUP-LOCATION-"].update(value=values["-BACKUP-LIST-"][0])
-                try:
-                    filename = os.path.join(
-                        values["-MAIN-FOLDER-"], values["-BACKUP-LIST-"][0]
-                    )
-                except:
-                    pass
         elif event == "-PRESET LIST-":  # A file was chosen from the listbox on the left
             if len(values["-PRESET LIST-"]) > 0:
                 clicked_key = str(values["-PRESET LIST-"][0])
@@ -342,13 +338,13 @@ def show_settings_box():
                          gui.Checkbox("", size=(14, 1), key="-DELETE-FILES-")]], border_width=0)],
 
         # IGNORE FILE
-        [gui.Frame('', [[gui.Text("File Names to ignore:", size=(20, 1))]], title_color='yellow', border_width=0)],
+        [gui.Frame('', [[gui.Text("File Names to ignore: ", size=(20, 1))]], title_color='yellow', border_width=0)],
         [gui.Frame('', [[gui.Listbox(
             values=files.skip_files, enable_events=True, size=(30, 10), key="-IGNORED-FILES-"
         )]], border_width=0)],
 
         [gui.Frame('',
-                   [[gui.Text("Ignore Filename:", size=(16, 1)), gui.Input("", size=(14, 1), key="-IGNORE-FILENAME-"),
+                   [[gui.Text("Ignore File Name:", size=(16, 1)), gui.Input("", size=(14, 1), key="-IGNORE-FILENAME-"),
                      gui.Button("Add", size=(14, 1), key="-ADD-IGNORED-"),
                      gui.Button("Remove", size=(14, 1), key="-REMOVE-IGNORED-")]], border_width=0)],
 
@@ -359,7 +355,7 @@ def show_settings_box():
         )]], border_width=0)],
 
         [gui.Frame('',
-                   [[gui.Text("Ignore Folder:", size=(16, 1)), gui.Input("", size=(14, 1), key="-IGNORE-FOLDER-"),
+                   [[gui.Text("Ignore Folder Name:", size=(16, 1)), gui.Input("", size=(14, 1), key="-IGNORE-FOLDER-"),
                      gui.Button("Add", size=(14, 1), key="-ADD-IGNORED-FOLDER-"),
                      gui.Button("Remove", size=(14, 1), key="-REMOVE-IGNORED-FOLDER-")]], border_width=0)],
 
