@@ -439,10 +439,10 @@ class TestStringMethods(unittest.TestCase):
 
         self.assertEqual(True, True)
 
-    def test_command_line_skip_path(self):
+    def test_gui_create_preset(self):
         """  """
         print(">>>>>>>TEST test_command_line_skip_path")
-
+        # i also need a command to get settings for users
         self.assertEqual(True, True)
 
 

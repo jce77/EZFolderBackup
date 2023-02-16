@@ -4,10 +4,11 @@ from scripts import program as main
 from scripts import files
 from scripts import logging
 
+
 all_commands = ["-createpreset", "-b", "-deletepreset", "-h", "-help", "-hf", "-logfilemax", "-m", "-moveup",
                 "-movedown", "-cleanup",
-                "-nologging", "-runbackup", "-runpreset", "-skipfile", "-support", "-version", "-viewlog",
-                "-viewpresets", "-skipfolder"]
+                "-nologging", "-runbackup", "-runbackupall", "-runpreset", "-support", "-version",
+                "-viewlog", "-viewsettings", "-viewpresets", "-skipfile", "-skipfolder", "-skippath"]
 
 
 def sort_arguments(arguments):

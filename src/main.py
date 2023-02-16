@@ -8,6 +8,9 @@ Update v1.1.4
 - Added command-line option to toggle on and off cleanup and nologging
 - Failing to trash a folder that contains ignored file/folder names results in a logged error but continues the backup
 - Changed backup locations to a list box instead of the five inputs
+- Added a 'view settings' command-line parameter
+- Changed paused button to only appear after all files have been found and compared
+
 
 
 

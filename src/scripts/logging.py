@@ -55,6 +55,7 @@ def print_log(label):
     if not exists("log/"):
         os.mkdir("log/")
     filename = label + "-" + str(datetime.now().strftime("[%Y_%m_%d]-[%H_%M_%S]")) + ".txt"
+
     with open("log/" + filename, "w",
               encoding="utf-8") as f:
         f.write(log_file)

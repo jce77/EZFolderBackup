@@ -15,21 +15,9 @@ using_gui = False
 previous_skip_folders = []
 
 
-def get_backup_folders_from_gui(values):
-    """ Returns all the backup folder names that were entered into the GUI """
-    print("16123215 IMPLEMENT THIS")
-    backup_folders = []
-    if len(values["-BACKUP1-"]) > 0:
-        backup_folders.append(values["-BACKUP1-"])
-    if len(values["-BACKUP2-"]) > 0:
-        backup_folders.append(values["-BACKUP2-"])
-    if len(values["-BACKUP3-"]) > 0:
-        backup_folders.append(values["-BACKUP3-"])
-    if len(values["-BACKUP4-"]) > 0:
-        backup_folders.append(values["-BACKUP4-"])
-    if len(values["-BACKUP5-"]) > 0:
-        backup_folders.append(values["-BACKUP5-"])
-    return backup_folders
+def get_listbox_elements(window, key):
+    """ Returns all values currently inside the listbox """
+    return window[key].get_list_values()
 
 
 def show_gui(using_windows):
@@ -206,8 +194,8 @@ def show_gui(using_windows):
             else:
                 window["-ERROR-TEXT-"].update("No presets are saved")
         elif event == "Run Backup":
-            use_backup_folders = get_backup_folders_from_gui(values)
-            if files.valid_input_for_backup(values):
+            use_backup_folders = get_listbox_elements(window, "-BACKUP-LIST-")
+            if files.valid_input_for_backup(window, values):
                 if not question_box("Backup files for preset '" + str(values["-CURRENT-PRESET-NAME-"]) + "'?\n" +
                                     "(Files that no longer exist in the Main Folder will be trashed)", 80, 15):
                     continue
@@ -338,7 +326,7 @@ def show_settings_box():
                          gui.Checkbox("", size=(14, 1), key="-DELETE-FILES-")]], border_width=0)],
 
         # IGNORE FILE
-        [gui.Frame('', [[gui.Text("File Names to ignore: ", size=(20, 1))]], title_color='yellow', border_width=0)],
+        [gui.Frame('', [[gui.Text("File names to ignore: ", size=(20, 1))]], title_color='yellow', border_width=0)],
         [gui.Frame('', [[gui.Listbox(
             values=files.skip_files, enable_events=True, size=(30, 10), key="-IGNORED-FILES-"
         )]], border_width=0)],
@@ -349,7 +337,7 @@ def show_settings_box():
                      gui.Button("Remove", size=(14, 1), key="-REMOVE-IGNORED-")]], border_width=0)],
 
         # IGNORE FOLDER
-        [gui.Frame('', [[gui.Text("Folder Names to ignore:", size=(20, 1))]], title_color='yellow', border_width=0)],
+        [gui.Frame('', [[gui.Text("Folder names to ignore:", size=(20, 1))]], title_color='yellow', border_width=0)],
         [gui.Frame('', [[gui.Listbox(
             values=files.skip_folders, enable_events=True, size=(30, 10), key="-IGNORED-FOLDERS-"
         )]], border_width=0)],
@@ -536,6 +524,37 @@ def format_text_for_gui_display(text):
     return text
 
 
+def bool_to_str(state):
+    if state:
+        return "On"
+    else:
+        return "Off"
+
+
+def print_settings():
+    saving.load_settings_from_config()
+    msg = "-----------------------------------SETTINGS-------------------------------------\n"
+    msg += "Max number of log files: " + str(logging.log_file_max) + "\n\n"
+    msg += "Do not log backups: " + bool_to_str(logging.no_logging) + "\n\n"
+    msg += "Recycle/Trash deleted files: " + bool_to_str(files.delete_files) + "\n\n"
+    msg += "File Names to ignore: \n"
+    if len(files.skip_files) == 0:
+        msg += "    [None]\n"
+    else:
+        for name in files.skip_files:
+            msg += "    " + name + "\n"
+    msg += "\n"
+    msg += "Folder Names to ignore: \n"
+    if len(files.skip_folders) == 0:
+        msg += "    [None]\n"
+    else:
+        for name in files.skip_folders:
+            msg += "    " + name + "\n"
+    msg += "--------------------------------------------------------------------------------"
+
+    print(msg)
+
+
 def print_help_commands(print_in_console):
     msg = "--------------------------------------------------------------------------------\n" \
           " EZ Folder Backup Parameters:                                                 \n" \
@@ -576,17 +595,21 @@ def print_help_commands(print_in_console):
           "                                     once per new filename to be skipped. Do  \n" \
           "                                     not enter a path, just the folder name.  \n" \
           "-skipfolder remove foldername........Removes a skipped folder name.           \n" \
-          "-skippath add pathname...............Skips this specific location on your     \n" \
-          "                                     system from being checked for backup.    \n" \
-          "                                     Either a file or a folder.               \n" \
           "-skippath remove pathname............Removes a skipped path name.             \n" \
           "-support.............................Show support email for questions.        \n" \
           "-version.............................Show the current version of this program.\n" \
           "-viewlog.............................Show latest log file.                    \n" \
           "-viewpresets.........................Shows all presets.                       \n" \
+          "-viewsettings........................Shows the current settings.              \n" \
           "                                                                              \n" \
           "To make a donation, please visit https://ko-fi.com/jcecode                    \n" \
           "--------------------------------------------------------------------------------\n"
+
+    # ^^ maybe implement later
+    #  "-skippath add pathname...............Skips this specific location on your     \n" \
+    #  "                                     system from being checked for backup.    \n" \
+    #  "                                     Either a file or a folder.               \n" \
+
     if print_in_console:
         print(msg)
     return msg

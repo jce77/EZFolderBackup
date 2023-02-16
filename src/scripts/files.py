@@ -1,6 +1,7 @@
 # region 1. Imports and Variables
 import shutil
 import threading
+import multiprocessing
 from os.path import exists
 from scripts import ui
 from scripts import logging
@@ -13,6 +14,10 @@ delete_files = False  # if true, files will be recycled/trashed in backup folder
 skip_files = []
 skip_folders = []
 busy = False  # waiting for a process to be completed
+pausing_done = False
+pause_now = False
+exit_now = False
+get_all_filenames_thread_output = []
 
 
 # endregion
@@ -42,17 +47,12 @@ class DelFile:
 # endregion
 
 # region 3. Backup Function
-def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_of_files_to_backup, backup_directory,
-                                       using_windows):
+def copy_from_main_to_backup_directory(using_windows, use_graphics, window, main_folder, list_of_files_to_backup,
+                                       backup_directory):
     """ Ensures the input backup_directory is a clone of the main """
     progress_count = 0
     files_to_process = 0
 
-    if use_graphics:
-        window["-BAR-"].update(0)
-        ui.set_loading_bar_visible(window, True)
-        window["-ERROR-TEXT-"].update("Calculating backup... ")
-        window.refresh()
     if not using_windows:
         backup_directory = backup_directory.replace("\\", "/")
     if ":" == backup_directory[1:2]:
@@ -69,9 +69,27 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
             return "DRIVE " + backup_directory[0:3] + " NOT FOUND"
     print("<<< Backing up files to directory: " + backup_directory + " >>>")
     logging.log_file += "<<< Backing up files to directory: " + backup_directory + " >>>\n"
-    files_in_backup_directory = get_all_filenames(backup_directory)
-    # formatting names
+
+    global busy
+    # region 0. getting the files in backup ==============================================
+    if use_graphics:
+        global pause_now
+        global exit_now
+        thread1 = threading.Thread(target=get_all_filenames_thread, args=(backup_directory, ))
+        thread1.start()
+        # wait until thread is done, pausing during this operation is too unstable
+        while busy:
+            window.refresh()
+        global get_all_filenames_thread_output
+        files_in_backup_directory = get_all_filenames_thread_output
+
+    else:  # or just do it the standard way in command-line
+        files_in_backup_directory = get_all_filenames(backup_directory)
+
+    #  formatting names
     files_in_backup_directory = remove_path_to_root_folder_from_each(backup_directory, files_in_backup_directory)
+
+    # endregion
 
     # region 1. Getting free space left on this drive ==============================================
     path = 0
@@ -130,16 +148,6 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
             new_files.append(NewFile(get_filename(main_folder + file), main_folder + file, backup_location, file_size,
                                      get_date(path)))
 
-    # ------ refreshing the window and checking for events
-    if use_graphics:
-        # do event check here
-        event, values = window.read(timeout=0)
-        # if any input event in detected, open window to ask about cancelling
-        if event != '__TIMEOUT__':
-            if ui.question_box("Cancel backup operation?\n", 80, 15):
-                ui.set_loading_bar_visible(window, False)
-                return "BACKUP CANCELLED"
-    # -----------------------------------------------------
     # endregion
 
     # region 3. Getting every old file that needs to be removed from its location ================================
@@ -170,6 +178,13 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
     # endregion
 
     moved, copied, trashed = 0, 0, 0
+
+    # showing the loading bar now
+    if use_graphics:
+        window["-BAR-"].update(0)
+        ui.set_loading_bar_visible(window, True)
+        window.refresh()
+
 
     # region 4. DOING MOVE OPERATIONS ==================================================================================
     # iterating backwards since things need to be deleted from new_files and del_files possibly
@@ -270,7 +285,6 @@ def copy_from_main_to_backup_directory(use_graphics, window, main_folder, list_o
 
     # region 6. DOING COPY OPERATIONS ==================================================================================
     pause_now = False
-    global busy
     for i in range(len(new_files)):
         # ------ refreshing the window and checking for events
         if use_graphics:
@@ -602,6 +616,37 @@ def force_get_all_filenames(path):
     return list_of_files
 
 
+def get_all_filenames_thread(path):
+    """ Put all filenames inside the given path and its sub-folders inside the shared_filenames variable. """
+    global pause_now  # main to thread shared resource
+    global exit_now  # main to thread shared resource
+    global pausing_done  # thread to main shared resource
+    global busy
+    global get_all_filenames_thread_output
+    busy = True
+    global skip_folders
+    global skip_files
+    # print("Called get_all_filenames, skip_files=" + str(skip_files))
+    get_all_filenames_thread_output = []
+    for dname, dirs, files in os.walk(path):
+        dirs[:] = [d for d in dirs if d not in skip_folders]
+        for fname in files:
+            if fname not in skip_files:
+                get_all_filenames_thread_output.append(os.path.join(dname, fname))
+            # checking if the user hit pause, getting all filenames can be very slow and costly, especially for
+            # encrypted folders
+            if pause_now:
+                pausing_done = True
+                while pause_now:  # waiting
+                    #  open a dialogue box and confirm to exit from here
+                    if exit_now:
+                        exit_now = False
+                        pause_now = False
+                        busy = False
+                        return
+    busy = False
+
+
 def get_all_filenames(path):
     """ Returns all filenames inside the given path and its sub-folders """
     global skip_folders
@@ -689,9 +734,9 @@ def assure_path_to_file_exists(path_to_file):
         os.makedirs(dir)
 
 
-def valid_input_for_backup(values):
+def valid_input_for_backup(window, values):
     """ Ensures enough information was input to try and do the backup """
-    if len(values["-MAIN-FOLDER-"]) > 0 and len(values["-BACKUP1-"]) > 0:
+    if len(values["-MAIN-FOLDER-"]) > 0 and len(ui.get_listbox_elements(window, "-BACKUP-LIST-")) > 0:
         return True
     else:
         return False

@@ -1,3 +1,5 @@
+import threading
+
 from scripts import eula
 from scripts import ui
 from scripts import saving
@@ -8,11 +10,6 @@ import sys
 from sys import platform
 from os.path import exists
 
-all_commands = ["-createpreset", "-b", "-deletepreset", "-h", "-help", "-hf", "-logfilemax", "-m", "-moveup",
-                "-movedown",
-                "-nologging", "-runbackup", "-runbackupall", "-runpreset", "-support", "-version",
-                "-viewlog",
-                "-viewpresets", "-skipfile", "-skipfolder", "-skippath"]
 backup_folders = []
 
 main_folder = ""
@@ -31,20 +28,46 @@ def backup_operation(window, main_folder, backup_folders):
             window["-ERROR-TEXT-"].update("The main folder was not found")
             window.refresh()
             logging.log_file += "The main folder was not found\n"
-            logging.print_to_log("Main_Not_Found", logging.log_file)
+            logging.print_log("Main_Not_Found")
             return
     for i in range(len(backup_folders)):
         backup_folders[i] = backup_folders[i].replace("/", "\\")
+    if ui.using_gui:
+        window["-ERROR-TEXT-"].update("Calculating backup... ")
+
     # getting all file paths in the main storage directory
-    list_of_files = files.get_all_filenames(main_folder)
+    thread1 = threading.Thread(target=files.get_all_filenames_thread, args=(main_folder, ))
+    thread1.start()
+    while files.busy:
+        window.refresh()
+        event, values = window.read(timeout=0)
+        if event != '__TIMEOUT__':
+            window["-ERROR-TEXT-"].update(str("Pausing Backup..."))
+            files.pause_now = True
+        elif files.pausing_done:
+            if ui.question_box("Cancel backup operation?\n", 80, 15):
+                files.exit_now = True
+                window["-ERROR-TEXT-"].update(str("Backup Cancelled."))
+                ui.set_loading_bar_visible(window, False)
+                return "BACKUP CANCELLED"
+    list_of_files_to_backup = files.get_all_filenames_thread_output
+    files.get_all_filenames_thread_output = []
+
     # formatting names
-    list_of_files = files.remove_path_to_root_folder_from_each(main_folder, list_of_files)
+    list_of_files_to_backup = files.remove_path_to_root_folder_from_each(main_folder, list_of_files_to_backup)
+
     # comparing the other directories and deleting files that no longer exist
     error_msg = ""
     response = ""
+    if not exists(main_folder):
+        logging.log_file += "Cancelling this backup, main folder not found: '" + main_folder + "'."
+        return
     for backup_directory in backup_folders:
-        response = files.copy_from_main_to_backup_directory(ui.using_gui, window, main_folder, list_of_files,
-                                                            backup_directory, using_windows)
+        if not exists(backup_directory):
+            logging.log_file += "Skipping this backup location, not found: '" + backup_directory + "'."
+            continue
+        response = files.copy_from_main_to_backup_directory(using_windows, ui.using_gui, window, main_folder,
+                                                            list_of_files_to_backup, backup_directory)
         if "NOT FOUND" in response:
             error_msg = response
         elif "BACKUP CANCELLED" in response:
@@ -52,7 +75,7 @@ def backup_operation(window, main_folder, backup_folders):
                 window["-ERROR-TEXT-"].update("Backup Cancelled")
             print("Backup Cancelled")
             logging.log_file += "\n-------------------------------\nBackup Cancelled\n-------------------------------"
-            logging.print_to_log("Backup", logging.log_file)
+            logging.print_log("Backup")
             return
         elif "INSUFFICIENT SPACE" in response:
             if ui.using_gui:
@@ -60,7 +83,7 @@ def backup_operation(window, main_folder, backup_folders):
             print("Backup Cancelled, Insufficient Space inside: " + str(backup_directory))
             logging.log_file += "\n\nInsufficient Space inside: " + str(backup_directory)
             logging.log_file += "\n--------------------\nBackup Cancelled\n--------------------------------"
-            logging.print_to_log("Backup", logging.log_file)
+            logging.print_log("Backup")
             return
 
     if ui.using_gui:
@@ -161,6 +184,8 @@ def run_commands(commands):
     if "-version" in keys:
         global version
         print("v" + version)
+    if "-viewsettings" in keys:
+        ui.print_settings()
     if "-viewpresets" in keys:
         saving.print_presets(presets, True)
     if "-viewlog" in keys:
