@@ -296,8 +296,8 @@ def clear_preset_info(window):
 def set_loading_bar_visible(window, value, using_windows):
     window["-BAR-"].update(visible=value)
     if using_windows:
-        window[" "].update(visible=value)
-    else:
+	    window[" "].update(visible=value)
+    else:    
         window[" Cancel"].update(visible=value)
 
 

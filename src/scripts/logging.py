@@ -34,7 +34,7 @@ def print_last_log_file():
         txt = last_log_file.replace("/", "\\") + ":\n"
         with open(last_log_file, "r", encoding="utf-8") as f:
             for line in f:
-                txt += line + "\n"
+                txt += line
         print(txt)
 
 
