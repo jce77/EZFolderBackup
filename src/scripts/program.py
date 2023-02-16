@@ -52,11 +52,12 @@ def backup_operation(window, main_folder, backup_folders):
     error_msg = ""
     response = ""
     if not exists(main_folder):
-        logging.log_file += "Cancelling this backup, main folder not found: '" + main_folder + "'."
+        logging.log_file += "Cancelling this backup, main folder not found: '" + main_folder + "'." + "\n"
         return
-    for backup_directory in backup_folders:
-        if not exists(backup_directory):
-            logging.log_file += "Skipping this backup location, not found: '" + backup_directory + "'."
+    for path in backup_folders:
+        backup_directory = path.replace("\\", "/")
+        if not exists(path):
+            logging.log_file += "Skipping this backup location, not found: '" + backup_directory + "'." + "\n"
             continue
         response = files.copy_from_main_to_backup_directory(using_windows, ui.using_gui, window, main_folder,
                                                             list_of_files_to_backup, backup_directory)

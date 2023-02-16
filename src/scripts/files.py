@@ -60,7 +60,7 @@ def copy_from_main_to_backup_directory(using_windows, use_graphics, window, main
                                             "" + backup_directory + ">>>\n"
             logging.log_file += err_msg
             print(err_msg)
-            ui.set_loading_bar_visible(window, False)
+            ui.set_loading_bar_visible(window, False, using_windows)
             return "DRIVE " + backup_directory[0:3] + " NOT FOUND"
     print("<<< Backing up files to directory: " + backup_directory + " >>>")
     logging.log_file += "<<< Backing up files to directory: " + backup_directory + " >>>\n"
@@ -163,7 +163,7 @@ def copy_from_main_to_backup_directory(using_windows, use_graphics, window, main
         # if any input event in detected, open window to ask about cancelling
         if event != '__TIMEOUT__':
             if ui.question_box("Cancel backup operation?\n", 80, 15):
-                ui.set_loading_bar_visible(window, False)
+                ui.set_loading_bar_visible(window, False, using_windows)
                 return "BACKUP CANCELLED"
     # -----------------------------------------------------
 
@@ -175,7 +175,7 @@ def copy_from_main_to_backup_directory(using_windows, use_graphics, window, main
     # showing the loading bar now
     if use_graphics:
         window["-BAR-"].update(0)
-        ui.set_loading_bar_visible(window, True)
+        ui.set_loading_bar_visible(window, True, using_windows)
         window.refresh()
 
 
@@ -228,7 +228,7 @@ def copy_from_main_to_backup_directory(using_windows, use_graphics, window, main
                     # if any input event in detected, open window to ask about cancelling
                     if event != '__TIMEOUT__':
                         if ui.question_box("Cancel backup operation?\n", 80, 15):
-                            ui.set_loading_bar_visible(window, False)
+                            ui.set_loading_bar_visible(window, False, using_windows)
                             return "BACKUP CANCELLED"
                 # -----------------------------------------------------
 
@@ -271,7 +271,7 @@ def copy_from_main_to_backup_directory(using_windows, use_graphics, window, main
                 # if any input event in detected, open window to ask about cancelling
                 if event != '__TIMEOUT__':
                     if ui.question_box("Cancel backup operation?\n", 80, 15):
-                        ui.set_loading_bar_visible(window, False)
+                        ui.set_loading_bar_visible(window, False, using_windows)
                         return "BACKUP CANCELLED"
             # -----------------------------------------------------
     # endregion
@@ -287,7 +287,7 @@ def copy_from_main_to_backup_directory(using_windows, use_graphics, window, main
             if event != '__TIMEOUT__' or pause_now:
                 pause_now = False
                 if ui.question_box("Cancel backup operation?\n", 80, 15):
-                    ui.set_loading_bar_visible(window, False)
+                    ui.set_loading_bar_visible(window, False, using_windows)
                     return "BACKUP CANCELLED"
         # -----------------------------------------------------
         # copy the file over if its not found
@@ -307,7 +307,7 @@ def copy_from_main_to_backup_directory(using_windows, use_graphics, window, main
         # print("new_space_used > target_drive_free_space? " + str(new_space_used > target_drive_free_space))
         if new_space_used > target_drive_free_space:
             # print("NOT ENOUGH SPACE")
-            ui.set_loading_bar_visible(window, False)
+            ui.set_loading_bar_visible(window, False, using_windows)
             # log messages done after message is returned
             return "INSUFFICIENT SPACE"
         copied += 1
@@ -341,7 +341,7 @@ def copy_from_main_to_backup_directory(using_windows, use_graphics, window, main
     logging.log_file += final_counts + '\n'
     logging.log_file += "<<< Backup Successful >>>\n\n"
     if use_graphics:
-        ui.set_loading_bar_visible(window, False)
+        ui.set_loading_bar_visible(window, False, using_windows)
     return "BACKUP SUCCESSFUL"
 
     # endregion
