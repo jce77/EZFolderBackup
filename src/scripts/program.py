@@ -35,15 +35,17 @@ def backup_operation(window, main_folder, backup_folders):
         backup_folders[i] = backup_folders[i].replace("/", "\\")
     if ui.using_gui:
         window["-ERROR-TEXT-"].update("Calculating backup... ")
-
-    # getting all file paths in the main storage directory
-    thread1 = threading.Thread(target=files.get_all_filenames_thread, args=(main_folder, ))
-    thread1.start()
-    # wait until files are found
-    while files.busy:
-        window.refresh()
-    list_of_files_to_backup = files.get_all_filenames_thread_output
-    files.get_all_filenames_thread_output = []
+		# getting all file paths in the main storage directory
+        thread1 = threading.Thread(target=files.get_all_filenames_thread, args=(main_folder, ))
+        thread1.start()
+        # wait until files are found
+        while files.busy:
+            window.refresh()
+        list_of_files_to_backup = files.get_all_filenames_thread_output
+        files.get_all_filenames_thread_output = []
+    else:
+        print("Calculating backup... ")
+        list_of_files_to_backup = files.get_all_filenames(main_folder)		
 
     # formatting names
     list_of_files_to_backup = files.remove_path_to_root_folder_from_each(main_folder, list_of_files_to_backup)
