@@ -178,13 +178,10 @@ def show_gui(using_windows):
                 window["-PRESET LIST-"].set_value(preset_name)
         elif event == "Backup All":
             if len(main.presets) > 0:
-                if using_windows:
-                    check_box_text = 'Send deleted files to Recycle Bin?'
-                else:
-                    check_box_text = 'Send deleted files to Trash?'
+                check_box_text = 'Send deleted files to Recycle Bin?' if using_windows else \
+                    'Send deleted files to Trash?'
                 response = question_box_with_radio("Backup files for all presets?", check_box_text, files.delete_files,
                                                    80, 15)
-
                 # user clicked x box or answered no
                 if type(response) == bool or not response[0]:
                     continue
@@ -194,14 +191,20 @@ def show_gui(using_windows):
             else:
                 window["-ERROR-TEXT-"].update("No presets are saved")
         elif event == "Run Backup":
+            check_box_text = 'Send deleted files to Recycle Bin?' if using_windows else 'Send deleted files to Trash?'
             use_backup_folders = get_listbox_elements(window, "-BACKUP-LIST-")
-            if files.valid_input_for_backup(window, values):
-                if not question_box("Backup files for preset '" + str(values["-CURRENT-PRESET-NAME-"]) + "'?\n" +
-                                    "(Files that no longer exist in the Main Folder will be trashed)", 80, 15):
-                    continue
-                main.run_backup(window, values["-MAIN-FOLDER-"], use_backup_folders)
-            else:
+            response = question_box_with_radio("Backup files for preset '" +
+                                               str(values["-CURRENT-PRESET-NAME-"]) + "'?\n", check_box_text,
+                                               files.delete_files, 80, 15)
+            # user clicked x box or answered no
+            if not files.valid_input_for_backup(window, values):
                 window["-ERROR-TEXT-"].update("You must set the main drive and at least one backup drive")
+                continue
+            if type(response) == bool or not response[0]:
+                continue
+            files.delete_files = response[1]
+            saving.save_settings_to_config()
+            main.run_backup(window, values["-MAIN-FOLDER-"], use_backup_folders)
         elif event == "-NEW-BACKUP-":
             window["-NEW-BACKUP-LOCATION-"].update("")
             window["-BACKUP-LIST-"].update(set_to_index=[])
@@ -242,7 +245,6 @@ def show_gui(using_windows):
             if len(preset_key) == 0:
                 window["-ERROR-TEXT-"].update("Backup Preset Name is not set")
             else:
-                print("Saved Preset: " + str(preset_key))
                 if preset_key in main.presets:
                     if not question_box("Overwrite preset '" + str(preset_key) + "'?", 65, 15):
                         continue
@@ -251,11 +253,14 @@ def show_gui(using_windows):
                 main.presets[preset_key]["backup_folders"] = window["-BACKUP-LIST-"].get_list_values()
                 if len(main.presets[preset_key]["backup_folders"]) == 0:
                     window["-ERROR-TEXT-"].update("Enter at least one backup folder")
+                    del main.presets[preset_key]
+                    continue
                 else:
                     refresh_presets_list(window, main.presets)
                     saving.save_presets_to_config(main.presets)
                     preset_name = values["-CURRENT-PRESET-NAME-"]
                     window["-PRESET LIST-"].set_value(preset_name)
+                    print("Saved Preset: " + str(preset_key))
 
         elif event == "-BACKUP-LIST-":  # A backup location was chosen from the listbox on the right
             # list_values = window["-BACKUP-LIST-"].get_list_values()

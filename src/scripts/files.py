@@ -1,22 +1,17 @@
 # region 1. Imports and Variables
 import shutil
 import threading
-import multiprocessing
 from os.path import exists
 from scripts import ui
 from scripts import logging
 import os
 import datetime
 from scripts import trash
-import sys
 
 delete_files = False  # if true, files will be recycled/trashed in backup folders when no longer existing in main folder
 skip_files = []
 skip_folders = []
 busy = False  # waiting for a process to be completed
-pausing_done = False
-pause_now = False
-exit_now = False
 get_all_filenames_thread_output = []
 
 
@@ -73,8 +68,6 @@ def copy_from_main_to_backup_directory(using_windows, use_graphics, window, main
     global busy
     # region 0. getting the files in backup ==============================================
     if use_graphics:
-        global pause_now
-        global exit_now
         thread1 = threading.Thread(target=get_all_filenames_thread, args=(backup_directory, ))
         thread1.start()
         # wait until thread is done, pausing during this operation is too unstable
@@ -618,9 +611,6 @@ def force_get_all_filenames(path):
 
 def get_all_filenames_thread(path):
     """ Put all filenames inside the given path and its sub-folders inside the shared_filenames variable. """
-    global pause_now  # main to thread shared resource
-    global exit_now  # main to thread shared resource
-    global pausing_done  # thread to main shared resource
     global busy
     global get_all_filenames_thread_output
     busy = True
@@ -635,15 +625,6 @@ def get_all_filenames_thread(path):
                 get_all_filenames_thread_output.append(os.path.join(dname, fname))
             # checking if the user hit pause, getting all filenames can be very slow and costly, especially for
             # encrypted folders
-            if pause_now:
-                pausing_done = True
-                while pause_now:  # waiting
-                    #  open a dialogue box and confirm to exit from here
-                    if exit_now:
-                        exit_now = False
-                        pause_now = False
-                        busy = False
-                        return
     busy = False
 
 

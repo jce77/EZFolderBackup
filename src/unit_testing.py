@@ -140,9 +140,9 @@ class TestStringMethods(unittest.TestCase):
         """ Creates some files, and ensures copying/moving/deleting all works """
         print(">>>>>>>TEST test_command_line_runbackup")
 
-        print("SKIPPING FOR NOW TO CLEAN UP LOG, REMOVE THIS LATER")
-        self.assertEqual(True, True)
-        return
+        # print("SKIPPING FOR NOW, REMOVE THIS LATER")
+        # self.assertEqual(True, True)
+        # return
 
         test_dir = os.getcwd() + "/unit_test_files"
         test_dir = test_dir.replace("\\", "/")
@@ -150,12 +150,11 @@ class TestStringMethods(unittest.TestCase):
         files.create_test_files(test_dir, 2500000)
         main.testing_start(("-runbackup -m " + test_dir + "/main "
                                                           "-b " + test_dir + "/b1 "
-                                                                             "-b " + test_dir + "/b2 "
-                                                                                                "-b " + test_dir + "/b3 "
-                                                                                                                   "-b " + test_dir + "/b4 "
-                                                                                                                                      "-b " + test_dir + "/b5 "
-                                                                                                                                                         "-cleanup on -nologging off").split(
-            ' '))
+                                                          "-b " + test_dir + "/b2 "
+                                                          "-b " + test_dir + "/b3 "
+                                                          "-b " + test_dir + "/b4 "
+                                                          "-b " + test_dir + "/b5 "
+                                                          "-cleanup on -nologging off").split(' '))
         passed = True
         for i in range(1, 6):
             if not files.folders_are_equal(test_dir + "/main", test_dir + "/b" + str(i)):
@@ -168,9 +167,9 @@ class TestStringMethods(unittest.TestCase):
         """ Creates a number of presets and files, and ensures copying/moving/deleting all works """
         print(">>>>>>>TEST test_command_line_runbackupall")
 
-        print("SKIPPING FOR NOW TO CLEAN UP LOG, REMOVE THIS LATER")
-        self.assertEqual(True, True)
-        return
+        # print("SKIPPING FOR NOW, REMOVE THIS LATER")
+        # self.assertEqual(True, True)
+        # return
 
         preset_names = ["Test Preset 11", "Test Preset 22", "Test Preset 33"]
         test_dirs = [(os.getcwd() + "/unit_test_files1").replace("\\", "/"),
@@ -220,9 +219,9 @@ class TestStringMethods(unittest.TestCase):
         """ Creates a single preset and some files, and ensures copying/moving/deleting all works """
         print(">>>>>>>TEST test_command_line_runbackuppreset")
 
-        print("SKIPPING FOR NOW TO CLEAN UP LOG, REMOVE THIS LATER")
-        self.assertEqual(True, True)
-        return
+        # print("SKIPPING FOR NOW, REMOVE THIS LATER")
+        # self.assertEqual(True, True)
+        # return
 
         preset_name = "Test Preset 11"
         test_dir = os.getcwd() + "/unit_test_files"
@@ -322,9 +321,9 @@ class TestStringMethods(unittest.TestCase):
         """  """
         print(">>>>>>>TEST test_command_line_skip_file")
 
-        print("SKIPPING FOR NOW TO CLEAN UP LOG, REMOVE THIS LATER")
-        self.assertEqual(True, True)
-        return
+        # print("SKIPPING FOR NOW, REMOVE THIS LATER")
+        # self.assertEqual(True, True)
+        # return
 
         test_dir = os.getcwd() + "/unit_test_files"
         test_dir = test_dir.replace("\\", "/")
@@ -382,9 +381,9 @@ class TestStringMethods(unittest.TestCase):
         """  """
         print(">>>>>>>TEST test_command_line_skip_folder")
 
-        print("SKIPPING FOR NOW TO CLEAN UP LOG, REMOVE THIS LATER")
-        self.assertEqual(True, True)
-        return
+        # print("SKIPPING FOR NOW, REMOVE THIS LATER")
+        # self.assertEqual(True, True)
+        # return
 
         test_dir = os.getcwd() + "/unit_test_files"
         test_dir = test_dir.replace("\\", "/")
@@ -439,34 +438,7 @@ class TestStringMethods(unittest.TestCase):
 
         self.assertEqual(True, True)
 
-    def test_gui_create_preset(self):
-        """  """
-        print(">>>>>>>TEST test_command_line_skip_path")
-        # i also need a command to get settings for users
-        self.assertEqual(True, True)
-
 
 if __name__ == '__main__':
     unittest.main()
 
-'''
-Current plan:
-
-    i also need to implement this, add it to the GUI, and once done that and these last 4 tests. Then I can finally
-    test it in Ubunut command-line, Fedora command-line, Windows command-line. Then I need to make a function
-    that sets up a work environment to do the GUI testing, and then I can just open the GUI. I definitely will be
-    testing the GUI in fedora and windows at least, but probably all 3. so it will be 6 tests required before I can
-    push any update, at least 3 of them will be extremely easy. but the other tests will have just a simple list
-    of things i click. I will probably make a secret run command that doesn't show up in the documentation so I can
-    easily get up the GUI test environment on linux, in terms of its files and even the presets, maybe it will
-    be slightly smart about it and find good folder locations actually that would be much smarter, so it at least
-    will be auto setup so I can just click the buttons and ensure everything seems to be working. Most of the
-    settings dont need to be as thouroughly tested in the GUI I would say, since the command-line tests are still
-    definitely running most of the functions and any GUI stuff is just little bits of debug information mostly.
-    
-    the other thing is I need to change the stupid 5 backups thing and make a nice dropdown list where you can add
-    unlimited amounts of backups
-    
-
-
-'''

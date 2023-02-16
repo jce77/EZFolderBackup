@@ -8,7 +8,9 @@ from scripts import logging
 all_commands = ["-createpreset", "-b", "-deletepreset", "-h", "-help", "-hf", "-logfilemax", "-m", "-moveup",
                 "-movedown", "-cleanup",
                 "-nologging", "-runbackup", "-runbackupall", "-runpreset", "-support", "-version",
-                "-viewlog", "-viewsettings", "-viewpresets", "-skipfile", "-skipfolder", "-skippath"]
+                "-viewlog", "-viewsettings", "-viewpresets", "-skipfile", "-skipfolder", "-skippath",
+                "-setuptestenv", "-removetestenv"
+                ]
 
 
 def sort_arguments(arguments):

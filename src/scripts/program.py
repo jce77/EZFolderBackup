@@ -1,3 +1,4 @@
+import os
 import threading
 
 from scripts import eula
@@ -38,18 +39,9 @@ def backup_operation(window, main_folder, backup_folders):
     # getting all file paths in the main storage directory
     thread1 = threading.Thread(target=files.get_all_filenames_thread, args=(main_folder, ))
     thread1.start()
+    # wait until files are found
     while files.busy:
         window.refresh()
-        event, values = window.read(timeout=0)
-        if event != '__TIMEOUT__':
-            window["-ERROR-TEXT-"].update(str("Pausing Backup..."))
-            files.pause_now = True
-        elif files.pausing_done:
-            if ui.question_box("Cancel backup operation?\n", 80, 15):
-                files.exit_now = True
-                window["-ERROR-TEXT-"].update(str("Backup Cancelled."))
-                ui.set_loading_bar_visible(window, False)
-                return "BACKUP CANCELLED"
     list_of_files_to_backup = files.get_all_filenames_thread_output
     files.get_all_filenames_thread_output = []
 
@@ -179,6 +171,32 @@ def run_commands(commands):
                 presets = files.move_index_in_dict(presets, cmd[1], False)
                 # ensure changes are persistent
                 saving.save_presets_to_config(presets)
+    if "-setuptestenv" in keys:
+        presets = {}
+        for i in range(5):
+            test_dir = os.getcwd() + "/unit_test_files" + str(i)
+            test_dir = test_dir.replace("\\", "/")
+            files.fully_delete_path(test_dir)
+            files.create_test_files(test_dir, 2500000)
+            backup_name = "Test Backup" + str(i)
+            presets[backup_name] = {}
+            presets[backup_name]["main_folder"] = test_dir + "/main"
+            presets[backup_name]["backup_folders"] = [
+                test_dir + "/b1",
+                test_dir + "/b2",
+                test_dir + "/b3",
+                test_dir + "/b4",
+                test_dir + "/b5"
+            ]
+        saving.save_presets_to_config(presets)
+    if "-removetestenv" in keys:
+        print("Removing test environment...")
+        for i in range(5):
+            test_dir = os.getcwd() + "/unit_test_files" + str(i)
+            test_dir = test_dir.replace("\\", "/")
+            files.fully_delete_path(test_dir)
+        presets = {}
+        saving.save_presets_to_config(presets)
     if "-support" in keys:
         print("For questions or to report bugs please email help.jcecode@yahoo.com")
     if "-version" in keys:
