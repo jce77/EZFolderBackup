@@ -104,8 +104,8 @@ def trash_file(path):
         try:
             send2trash(path)
         except FileNotFoundError:
-            msg = "ERROR: could not trash file at the path: \n   '" + path + "'\nThe name contains "
-            + " unrecognized characters that must be removed.\n"
+            msg = "ERROR: could not trash file at the path: \n   '" + path + "'\nThe name contains " \
+                                                                             "unrecognized characters that must be removed.\n"
             logging.log_file += msg
             logging.log_error(msg)
             print(msg)

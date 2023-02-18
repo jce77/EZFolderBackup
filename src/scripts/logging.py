@@ -55,7 +55,11 @@ def print_log(label):
     if not exists("log/"):
         os.mkdir("log/")
     filename = label + "-" + str(datetime.now().strftime("[%Y_%m_%d]-[%H_%M_%S]")) + ".txt"
-
+    counter = 1
+    # ensure to not overwrite a log file, but it can only happen if its made in the same second anyways
+    while exists(filename):
+        filename = label + "-" + str(datetime.now().strftime("[%Y_%m_%d]-[%H_%M_%S]")) + "__" + str(counter) + ".txt"
+        counter += 1
     with open("log/" + filename, "w",
               encoding="utf-8") as f:
         f.write(log_file)

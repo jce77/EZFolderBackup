@@ -24,40 +24,35 @@ using_windows = False
 def backup_operation(window, main_folder, backup_folders):
     """ Ensures the input backup_folders are all exact clones of the input main_folder """
     global using_windows
+    # checking for main folder
     if not exists(main_folder):
+        error_text = "The main folder was not found"
         if ui.using_gui:
-            window["-ERROR-TEXT-"].update("The main folder was not found")
+            window["-ERROR-TEXT-"].update(error_text)
             window.refresh()
-            logging.log_file += "The main folder was not found\n"
-            logging.print_log("Main_Not_Found")
-            return
+        print(error_text)
+        logging.log_file += error_text + "\n"
+        logging.print_log("Main_Folder_Not_Found")
+        return "MAIN FOLDER NOT FOUND"
+    # formatting input
+    main_folder = files.format_text(main_folder, using_windows)
     for i in range(len(backup_folders)):
-        backup_folders[i] = backup_folders[i].replace("/", "\\")
+        backup_folders[i] = files.format_text(backup_folders[i], using_windows)
+    # response to user
     if ui.using_gui:
         window["-ERROR-TEXT-"].update("Calculating backup... ")
-		# getting all file paths in the main storage directory
-        thread1 = threading.Thread(target=files.get_all_filenames_thread, args=(main_folder, ))
-        thread1.start()
-        # wait until files are found
-        while files.busy:
-            window.refresh()
-        list_of_files_to_backup = files.get_all_filenames_thread_output
-        files.get_all_filenames_thread_output = []
-    else:
-        print("Calculating backup... ")
-        list_of_files_to_backup = files.get_all_filenames(main_folder)		
-
-    # formatting names
+    print("Calculating backup... ")
+    # getting and formatting files in main folder
+    list_of_files_to_backup = files.get_all_filenames(main_folder)
     list_of_files_to_backup = files.remove_path_to_root_folder_from_each(main_folder, list_of_files_to_backup)
+    for i in range(len(list_of_files_to_backup)):
+        list_of_files_to_backup[i] = files.format_text(list_of_files_to_backup[i], using_windows)
 
     # comparing the other directories and deleting files that no longer exist
     error_msg = ""
     response = ""
-    if not exists(main_folder):
-        logging.log_file += "Cancelling this backup, main folder not found: '" + main_folder + "'." + "\n"
-        return
     for path in backup_folders:
-        backup_directory = path.replace("\\", "/")
+        backup_directory = files.format_text(path, using_windows)
         if not exists(backup_directory):
             logging.log_file += "Skipping this backup location, not found: '" + backup_directory + "'." + "\n"
             continue
@@ -71,7 +66,7 @@ def backup_operation(window, main_folder, backup_folders):
             print("Backup Cancelled")
             logging.log_file += "\n-------------------------------\nBackup Cancelled\n-------------------------------"
             logging.print_log("Backup")
-            return
+            return "BACKUP CANCELLED"
         elif "INSUFFICIENT SPACE" in response:
             if ui.using_gui:
                 window["-ERROR-TEXT-"].update("Cancelled, Insufficient Space for: " + str(backup_directory))
@@ -79,7 +74,7 @@ def backup_operation(window, main_folder, backup_folders):
             logging.log_file += "\n\nInsufficient Space inside: " + str(backup_directory)
             logging.log_file += "\n--------------------\nBackup Cancelled\n--------------------------------"
             logging.print_log("Backup")
-            return
+            return "INSUFFICIENT SPACE"
 
     if ui.using_gui:
         if response == "BACKUP SUCCESSFUL":
@@ -90,6 +85,7 @@ def backup_operation(window, main_folder, backup_folders):
         else:
             window["-ERROR-TEXT-"].update(error_msg)
         window.refresh()
+    return "BACKUP COMPLETE"
 
 
 def run_backup_all(window):
@@ -107,7 +103,13 @@ def run_backup_all(window):
             window["-PRESET LIST-"].set_value(preset)  # selecting the preset in the GUI
         logging.log_file += "Backing Up '" + str(preset) + "'\n"
         logging.log_file += main_folder + "\n\n"
-        backup_operation(window, presets[preset]['main_folder'], presets[preset]['backup_folders'])
+        response = backup_operation(window, presets[preset]['main_folder'], presets[preset]['backup_folders'])
+        if "BACKUP CANCELLED" in response:
+            if ui.using_gui:
+                window["-ERROR-TEXT-"].update("Backup Cancelled")
+            logging.log_file += "\n-------------------------------\nBackup Cancelled\n-------------------------------"
+            logging.print_log("Backup")
+            return
         logging.log_file += "-----------------------------------------------------------------------\n"
         print("-----------------------------------------------------------------------")
     logging.log_file += logging.get_errors()
@@ -127,6 +129,7 @@ def run_backup(window, main_folder, backup_folders):
 
 def run_commands(commands):
     """ Running commands that were input as parameters in the console """
+    global using_windows
     global main_folder
     # global no_logging
     # global log_file_max
@@ -159,7 +162,7 @@ def run_commands(commands):
                     sys.exit(1)
                 presets = files.move_index_in_dict(presets, cmd[1], True)
                 # ensure changes are persistent
-                saving.save_presets_to_config(presets)
+                saving.save_presets_to_config(presets, using_windows)
     if "-movedown" in keys:
         for cmd in commands:
             if cmd[0] == "-movedown":
@@ -173,12 +176,13 @@ def run_commands(commands):
                     sys.exit(1)
                 presets = files.move_index_in_dict(presets, cmd[1], False)
                 # ensure changes are persistent
-                saving.save_presets_to_config(presets)
+                saving.save_presets_to_config(presets, using_windows)
     if "-setuptestenv" in keys:
         presets = {}
         for i in range(5):
             test_dir = os.getcwd() + "/unit_test_files" + str(i)
-            test_dir = test_dir.replace("\\", "/")
+            # test_dir = test_dir.replace("\\", "/")
+            test_dir = files.format_text(test_dir, using_windows)
             files.fully_delete_path(test_dir)
             files.create_test_files(test_dir, 2500000)
             backup_name = "Test Backup" + str(i)
@@ -191,15 +195,16 @@ def run_commands(commands):
                 test_dir + "/b4",
                 test_dir + "/b5"
             ]
-        saving.save_presets_to_config(presets)
+        saving.save_presets_to_config(presets, using_windows)
     if "-removetestenv" in keys:
         print("Removing test environment...")
         for i in range(5):
             test_dir = os.getcwd() + "/unit_test_files" + str(i)
-            test_dir = test_dir.replace("\\", "/")
+            # test_dir = test_dir.replace("\\", "/")
+            test_dir = files.format_text(test_dir, using_windows)
             files.fully_delete_path(test_dir)
         presets = {}
-        saving.save_presets_to_config(presets)
+        saving.save_presets_to_config(presets, using_windows)
     if "-support" in keys:
         print("For questions or to report bugs please email help.jcecode@yahoo.com")
     if "-version" in keys:
@@ -288,7 +293,7 @@ def run_commands(commands):
         presets[preset_key]["main_folder"] = main_folder
         presets[preset_key]["backup_folders"] = backup_folders
         # ensure changes are persistent
-        saving.save_presets_to_config(presets)
+        saving.save_presets_to_config(presets, using_windows)
     if "-deletepreset" in keys:
         preset_key = ""
         for cmd in commands:
@@ -302,7 +307,7 @@ def run_commands(commands):
             print("Deleted preset: " + preset_key)
             del presets[preset_key]
             # ensure changes are persistent
-            saving.save_presets_to_config(presets)
+            saving.save_presets_to_config(presets, using_windows)
         else:
             print("Key entered '" + preset_key + "' could not be found to be deleted.")
     # Backup All Presets

@@ -100,16 +100,16 @@ def save_settings_to_config():
         f.write(settings)
 
 
-def save_presets_to_config(presets):
+def save_presets_to_config(presets, using_windows):
     """ Saves the input backup presets to the presets.cfg file """
     files.backup_file('presets/presets.cfg.old')
     files.backup_file('presets/presets.cfg')
     lines = ""
     for preset in presets:
         lines += "preset=" + preset + "\n"
-        lines += "main_folder=" + str(presets[preset]["main_folder"]).replace("/", "\\") + "\n"
+        lines += "main_folder=" + files.format_text(presets[preset]["main_folder"], using_windows) + "\n"
         for backup_folder in presets[preset]["backup_folders"]:
-            lines += "backup_folder=" + str(backup_folder).replace("/", "\\") + "\n"
+            lines += "backup_folder=" + files.format_text(backup_folder, using_windows) + "\n"
     with open('presets/presets.cfg', 'w') as f:
         f.write(lines)
 

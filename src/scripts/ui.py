@@ -166,14 +166,14 @@ def show_gui(using_windows):
             if len(main.presets) > 0:
                 preset_name = values["-CURRENT-PRESET-NAME-"]
                 main.presets = files.move_index_in_dict(main.presets, preset_name, True)
-                saving.save_presets_to_config(main.presets)
+                saving.save_presets_to_config(main.presets, main.using_windows)
                 refresh_presets_list(window, main.presets)
                 window["-PRESET LIST-"].set_value(preset_name)
         elif event == "Move Down":
             if len(main.presets) > 0:
                 preset_name = values["-CURRENT-PRESET-NAME-"]
                 main.presets = files.move_index_in_dict(main.presets, preset_name, False)
-                saving.save_presets_to_config(main.presets)
+                saving.save_presets_to_config(main.presets, main.using_windows)
                 refresh_presets_list(window, main.presets)
                 window["-PRESET LIST-"].set_value(preset_name)
         elif event == "Backup All":
@@ -236,7 +236,7 @@ def show_gui(using_windows):
                 print("Deleted Preset: " + str(values["-CURRENT-PRESET-NAME-"]))
                 del main.presets[values["-CURRENT-PRESET-NAME-"]]
                 refresh_presets_list(window, main.presets)
-                saving.save_presets_to_config(main.presets)
+                saving.save_presets_to_config(main.presets, main.using_windows)
                 clear_preset_info(window)
             else:
                 window["-ERROR-TEXT-"].update("Cannot Delete, Not Found")
@@ -257,7 +257,7 @@ def show_gui(using_windows):
                     continue
                 else:
                     refresh_presets_list(window, main.presets)
-                    saving.save_presets_to_config(main.presets)
+                    saving.save_presets_to_config(main.presets, main.using_windows)
                     preset_name = values["-CURRENT-PRESET-NAME-"]
                     window["-PRESET LIST-"].set_value(preset_name)
                     print("Saved Preset: " + str(preset_key))
@@ -296,9 +296,10 @@ def clear_preset_info(window):
 def set_loading_bar_visible(window, value, using_windows):
     window["-BAR-"].update(visible=value)
     if using_windows:
-	    window[" "].update(visible=value)
+        window[" "].update(visible=value)
     else:    
         window[" Cancel"].update(visible=value)
+    window.refresh()
 
 
 def refresh_backup_locations_list(window, backup_locations):
@@ -375,11 +376,13 @@ def show_settings_box():
         event, values = window.read()
         if event == "-ADD-IGNORED-":
             to_add = values["-IGNORE-FILENAME-"]
+            window["-IGNORE-FILENAME-"].update("")
             if to_add not in files.skip_files:
                 files.skip_files.append(to_add)
                 window["-IGNORED-FILES-"].update(files.skip_files)
         if event == "-REMOVE-IGNORED-":
             to_remove = values["-IGNORE-FILENAME-"]
+            window["-IGNORE-FILENAME-"].update("")
             if to_remove[0] == '(':
                 to_remove = to_remove[2:len(to_remove) - 3]
             else:
@@ -398,11 +401,13 @@ def show_settings_box():
         # ADDING AND REMOVING IGNORED FOLDERS
         if event == "-ADD-IGNORED-FOLDER-":
             to_add = values["-IGNORE-FOLDER-"]
+            window["-IGNORE-FOLDER-"].update("")
             if to_add not in files.skip_folders:
                 files.skip_folders.append(to_add)
                 window["-IGNORED-FOLDERS-"].update(files.skip_folders)
         if event == "-REMOVE-IGNORED-FOLDER-":
             to_remove = values["-IGNORE-FOLDER-"]
+            window["-IGNORE-FOLDER-"].update("")
             if to_remove[0] == '(':
                 to_remove = to_remove[2:len(to_remove) - 3]
             # print("trying to remove " + str(to_remove) + " with " + str(len(skip_folders)) + "files to skip")
