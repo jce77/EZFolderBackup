@@ -26,8 +26,10 @@ class TestStringMethods(unittest.TestCase):
         main.program.saving.load_settings_from_config()
         new_log_files = []
         count = 0
-        files.assure_path_to_file_exists(os.getcwd() + "/log")
-        while len(os.listdir(os.getcwd() + "/log")) < test_value_int:
+        log_folder = os.getcwd() + "/log"
+        if not exists(log_folder):
+            os.mkdir(log_folder)
+        while len(os.listdir(log_folder)) < test_value_int:
             count += 1
             filename, trashed_file = logging.print_log("Test Log" + str(count))
             new_log_files.append(os.getcwd() + "/log/" + filename)
