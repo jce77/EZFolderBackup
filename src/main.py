@@ -1,9 +1,22 @@
 """
-EZ Folder Backup v1.1.2
+EZ Folder Backup v1.1.4
 
-Update v1.1.2
-- Added a trash function that replaces send2trash if its not installed, specifically to work with a fresh Ubuntu install
-- Fixed a number of errors preventing command-line backing up from running
+Update v1.1.4
+- Added setting to make deleting files optional, and off by default
+- Deleting a preset now clears its backup locations and name
+- Added a button to run all backup presets
+- Added command-line option to toggle on and off cleanup and nologging
+- Failing to trash a folder that contains ignored file/folder names results in a logged error but continues the backup
+- Changed backup locations to a list box instead of the five inputs
+- Added a 'view settings' command-line parameter
+- Changed cancel button to only appear when its usable
+- Fixed cancel button to properly cancel the entire 'Backup All' function and not just one backup
+- Made changes to README file
+
+
+
+
+
 
 
 A simple local backup application that runs on Windows and Linux
@@ -23,8 +36,16 @@ Run on linux with command line only:
 -To make a donation, please visit: https://ko-fi.com/jcecode
 """
 from scripts import program
+import sys
+
+
+def testing_start(arguments):
+    """ For Running Unit Tests """
+    # print("START: " + str(arguments))
+    program.start(arguments)
 
 
 if __name__ == '__main__':
-    program.start()
+    program.start(sys.argv)
+
 

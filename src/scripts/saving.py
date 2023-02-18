@@ -4,10 +4,13 @@ from scripts import program as main
 from scripts import files
 from scripts import logging
 
+
 all_commands = ["-createpreset", "-b", "-deletepreset", "-h", "-help", "-hf", "-logfilemax", "-m", "-moveup",
-                "-movedown",
-                "-nologging", "-runbackup", "-runpreset", "-skipfile", "-support", "-version", "-viewlog",
-                "-viewpresets", "-skipfolder"]
+                "-movedown", "-cleanup",
+                "-nologging", "-runbackup", "-runbackupall", "-runpreset", "-support", "-version",
+                "-viewlog", "-viewsettings", "-viewpresets", "-skipfile", "-skipfolder", "-skippath",
+                "-setuptestenv", "-removetestenv"
+                ]
 
 
 def sort_arguments(arguments):
@@ -41,6 +44,24 @@ def sort_arguments(arguments):
     return commands
 
 
+def position_in_presets(preset_name):
+    """ Returns index in list of presets, or -1 if not found """
+    if not exists('presets/presets.cfg'):
+        print("Presets file does not exist")
+        return -1
+    position = -1
+    with open('presets/presets.cfg', 'r') as f:
+        for line in f:
+            line = line.strip()
+            if 'preset=' in line:
+                position += 1
+                if line[7: len(line)].strip() == preset_name:
+                    return position
+    # not found
+    print("Preset not found")
+    return -1
+
+
 def load_settings_from_config():
     if exists('settings.cfg'):
         files.skip_files = []
@@ -48,24 +69,29 @@ def load_settings_from_config():
         with open('settings.cfg', 'r') as f:
             for line in f:
                 line = line.strip()
-                if 'log_file_max_count=' in line:
-                    logging.log_file_max_count = int(line[19: len(line)])
+                if 'log_file_max=' in line:
+                    # logging.log_file_max = int(line[13: len(line)])
+                    logging.log_file_max = int(line[13: len(line)].strip())
                 elif 'no_logging=' in line:
                     logging.no_logging = line[11: len(line)] == 'True'
                 elif 'skip_file=' in line:
                     files.skip_files.append(line[10: len(line)])
                 elif 'skip_folder=' in line:
                     files.skip_folders.append(line[12: len(line)])
+                elif 'cleanup=' in line:
+                    files.delete_files = line[8: len(line)] == 'True'
     else:
         files.skip_files = []
         files.skip_folders = []
+        files.delete_files = False
         # save default settings to the config
         save_settings_to_config()
 
 
 def save_settings_to_config():
-    settings = "log_file_max_count=" + str(logging.log_file_max_count) + "\n"
+    settings = "log_file_max=" + str(logging.log_file_max) + "\n"
     settings += "no_logging=" + str(logging.no_logging) + "\n"
+    settings += "cleanup=" + str(files.delete_files) + "\n"
     for file in files.skip_files:
         settings += "skip_file=" + file + "\n"
     for folder_name in files.skip_folders:
@@ -74,16 +100,16 @@ def save_settings_to_config():
         f.write(settings)
 
 
-def save_presets_to_config(presets):
+def save_presets_to_config(presets, using_windows):
     """ Saves the input backup presets to the presets.cfg file """
     files.backup_file('presets/presets.cfg.old')
     files.backup_file('presets/presets.cfg')
     lines = ""
     for preset in presets:
         lines += "preset=" + preset + "\n"
-        lines += "main_folder=" + str(presets[preset]["main_folder"]).replace("/", "\\") + "\n"
+        lines += "main_folder=" + files.format_text(presets[preset]["main_folder"], using_windows) + "\n"
         for backup_folder in presets[preset]["backup_folders"]:
-            lines += "backup_folder=" + str(backup_folder).replace("/", "\\") + "\n"
+            lines += "backup_folder=" + files.format_text(backup_folder, using_windows) + "\n"
     with open('presets/presets.cfg', 'w') as f:
         f.write(lines)
 
@@ -92,6 +118,9 @@ def load_selected_preset(preset, window, clicked_key):
     """ Shows the clicked backup preset in the GUI """
     window["-CURRENT-PRESET-NAME-"].update(clicked_key)
     window["-MAIN-FOLDER-"].update(preset['main_folder'])
+
+    window["-BACKUP-LIST-"].update(values=preset['backup_folders'])
+    '''
     count = 1
     for backup_folder in preset['backup_folders']:
         if count == 1:
@@ -107,6 +136,7 @@ def load_selected_preset(preset, window, clicked_key):
         else:
             break  # you only get 5 backup folders per preset
         count += 1
+    
     while count < 6:
         if count == 1:
             window["-BACKUP1-"].update(backup_folder)
@@ -119,6 +149,7 @@ def load_selected_preset(preset, window, clicked_key):
         elif count == 5:
             window["-BACKUP5-"].update("")
         count += 1
+    '''
 
 
 def add_preset(name, main_folder, backup_folders):

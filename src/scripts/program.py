@@ -1,3 +1,6 @@
+import os
+import threading
+
 from scripts import eula
 from scripts import ui
 from scripts import saving
@@ -8,46 +11,53 @@ import sys
 from sys import platform
 from os.path import exists
 
-all_commands = ["-createpreset", "-b", "-deletepreset", "-h", "-help", "-hf", "-logfilemax", "-m", "-moveup",
-                "-movedown",
-                "-nologging", "-runbackup", "-runpreset", "-skipfile", "-support", "-version", "-viewlog",
-                "-viewpresets", "-skipfolder"]
 backup_folders = []
 
 main_folder = ""
 
 presets = {}
 icon_file = ""
-version = "1.1.2"
+version = "1.1.4"
 using_windows = False
 
 
-def run_backup(window, main_folder, backup_folders):
+def backup_operation(window, main_folder, backup_folders):
     """ Ensures the input backup_folders are all exact clones of the input main_folder """
-    # use_graphics = type(window) != int
     global using_windows
-    logging.restart_log()
-    logging.log_file = "Backup Log For Main Folder:\n"
-    logging.log_file += main_folder + "\n\n"
+    # checking for main folder
     if not exists(main_folder):
+        error_text = "The main folder was not found"
         if ui.using_gui:
-            window["-ERROR-TEXT-"].update("The main folder was not found")
+            window["-ERROR-TEXT-"].update(error_text)
             window.refresh()
-            logging.log_file += "The main folder was not found\n"
-            logging.print_to_log("Main_Not_Found", logging.log_file)
-            return
+        print(error_text)
+        logging.log_file += error_text + "\n"
+        logging.print_log("Main_Folder_Not_Found")
+        return "MAIN FOLDER NOT FOUND"
+    # formatting input
+    main_folder = files.format_text(main_folder, using_windows)
     for i in range(len(backup_folders)):
-        backup_folders[i] = backup_folders[i].replace("/", "\\")
-    # getting all file paths in the main storage directory
-    list_of_files = files.get_all_filenames(main_folder)
-    # formatting names
-    list_of_files = files.remove_path_to_root_folder_from_each(main_folder, list_of_files)
+        backup_folders[i] = files.format_text(backup_folders[i], using_windows)
+    # response to user
+    if ui.using_gui:
+        window["-ERROR-TEXT-"].update("Calculating backup... ")
+    print("Calculating backup... ")
+    # getting and formatting files in main folder
+    list_of_files_to_backup = files.get_all_filenames(main_folder)
+    list_of_files_to_backup = files.remove_path_to_root_folder_from_each(main_folder, list_of_files_to_backup)
+    for i in range(len(list_of_files_to_backup)):
+        list_of_files_to_backup[i] = files.format_text(list_of_files_to_backup[i], using_windows)
+
     # comparing the other directories and deleting files that no longer exist
     error_msg = ""
     response = ""
-    for backup_directory in backup_folders:
-        response = files.copy_from_main_to_backup_directory(ui.using_gui, window, main_folder, list_of_files,
-                                                            backup_directory, using_windows)
+    for path in backup_folders:
+        backup_directory = files.format_text(path, using_windows)
+        if not exists(backup_directory):
+            logging.log_file += "Skipping this backup location, not found: '" + backup_directory + "'." + "\n"
+            continue
+        response = files.copy_from_main_to_backup_directory(using_windows, ui.using_gui, window, main_folder,
+                                                            list_of_files_to_backup, backup_directory)
         if "NOT FOUND" in response:
             error_msg = response
         elif "BACKUP CANCELLED" in response:
@@ -55,16 +65,16 @@ def run_backup(window, main_folder, backup_folders):
                 window["-ERROR-TEXT-"].update("Backup Cancelled")
             print("Backup Cancelled")
             logging.log_file += "\n-------------------------------\nBackup Cancelled\n-------------------------------"
-            logging.print_to_log("Backup", logging.log_file)
-            return
+            logging.print_log("Backup")
+            return "BACKUP CANCELLED"
         elif "INSUFFICIENT SPACE" in response:
             if ui.using_gui:
                 window["-ERROR-TEXT-"].update("Cancelled, Insufficient Space for: " + str(backup_directory))
             print("Backup Cancelled, Insufficient Space inside: " + str(backup_directory))
             logging.log_file += "\n\nInsufficient Space inside: " + str(backup_directory)
             logging.log_file += "\n--------------------\nBackup Cancelled\n--------------------------------"
-            logging.print_to_log("Backup", logging.log_file)
-            return
+            logging.print_log("Backup")
+            return "INSUFFICIENT SPACE"
 
     if ui.using_gui:
         if response == "BACKUP SUCCESSFUL":
@@ -75,20 +85,56 @@ def run_backup(window, main_folder, backup_folders):
         else:
             window["-ERROR-TEXT-"].update(error_msg)
         window.refresh()
-    # debug log
+    return "BACKUP COMPLETE"
+
+
+def run_backup_all(window):
+    """ Backs up every saved preset """
+    print("RUNBACKUPALL")
+    global presets
+    logging.restart_log()
+    logging.log_file += "BACKING UP ALL PRESETS:\n"
+    logging.log_file += "==============================================================\n"
+    logging.log_file += "==============================================================\n"
+    print("Backup up all presets: \n===========================")
+    for preset in presets:
+        print("Backing Up '" + str(preset) + "'")
+        if ui.using_gui:
+            window["-PRESET LIST-"].set_value(preset)  # selecting the preset in the GUI
+        logging.log_file += "Backing Up '" + str(preset) + "'\n"
+        logging.log_file += main_folder + "\n\n"
+        response = backup_operation(window, presets[preset]['main_folder'], presets[preset]['backup_folders'])
+        if "BACKUP CANCELLED" in response:
+            if ui.using_gui:
+                window["-ERROR-TEXT-"].update("Backup Cancelled")
+            logging.log_file += "\n-------------------------------\nBackup Cancelled\n-------------------------------"
+            logging.print_log("Backup")
+            return
+        logging.log_file += "-----------------------------------------------------------------------\n"
+        print("-----------------------------------------------------------------------")
     logging.log_file += logging.get_errors()
-    logging.print_to_log("Backup", logging.log_file)
+    logging.print_log("Backup")
+    pass
+
+
+def run_backup(window, main_folder, backup_folders):
+    """ Ensures the input backup_folders are all exact clones of the input main_folder """
+    logging.restart_log()
+    logging.log_file += "Backup Log For Main Folder:\n"
+    logging.log_file += main_folder + "\n\n"
+    backup_operation(window, main_folder, backup_folders)
+    logging.log_file += logging.get_errors()
+    logging.print_log("Backup")
 
 
 def run_commands(commands):
     """ Running commands that were input as parameters in the console """
+    global using_windows
     global main_folder
     # global no_logging
-    # global log_file_max_count
+    # global log_file_max
     global presets
     presets = saving.load_presets()
-    files.skip_files = []
-    files.skip_folders = []
     keys = []
     for command in commands:
         keys.append(command[0])
@@ -100,7 +146,7 @@ def run_commands(commands):
         print("-createpreset can only be run once at a time.")
         sys.exit(1)
     elif keys.count("-runbackup") > 1:
-        print("-runbackup can only be run once at a time.")
+        print("-runbackup can only be run once at a time, use '-runbackupall' to back up multiple in one command.")
         sys.exit(1)
     # Running commands =======================
     if "-moveup" in keys:
@@ -116,7 +162,7 @@ def run_commands(commands):
                     sys.exit(1)
                 presets = files.move_index_in_dict(presets, cmd[1], True)
                 # ensure changes are persistent
-                saving.save_presets_to_config(presets)
+                saving.save_presets_to_config(presets, using_windows)
     if "-movedown" in keys:
         for cmd in commands:
             if cmd[0] == "-movedown":
@@ -130,12 +176,42 @@ def run_commands(commands):
                     sys.exit(1)
                 presets = files.move_index_in_dict(presets, cmd[1], False)
                 # ensure changes are persistent
-                saving.save_presets_to_config(presets)
+                saving.save_presets_to_config(presets, using_windows)
+    if "-setuptestenv" in keys:
+        presets = {}
+        for i in range(5):
+            test_dir = os.getcwd() + "/unit_test_files" + str(i)
+            # test_dir = test_dir.replace("\\", "/")
+            test_dir = files.format_text(test_dir, using_windows)
+            files.fully_delete_path(test_dir)
+            files.create_test_files(test_dir, 2500000)
+            backup_name = "Test Backup" + str(i)
+            presets[backup_name] = {}
+            presets[backup_name]["main_folder"] = test_dir + "/main"
+            presets[backup_name]["backup_folders"] = [
+                test_dir + "/b1",
+                test_dir + "/b2",
+                test_dir + "/b3",
+                test_dir + "/b4",
+                test_dir + "/b5"
+            ]
+        saving.save_presets_to_config(presets, using_windows)
+    if "-removetestenv" in keys:
+        print("Removing test environment...")
+        for i in range(5):
+            test_dir = os.getcwd() + "/unit_test_files" + str(i)
+            # test_dir = test_dir.replace("\\", "/")
+            test_dir = files.format_text(test_dir, using_windows)
+            files.fully_delete_path(test_dir)
+        presets = {}
+        saving.save_presets_to_config(presets, using_windows)
     if "-support" in keys:
         print("For questions or to report bugs please email help.jcecode@yahoo.com")
     if "-version" in keys:
         global version
         print("v" + version)
+    if "-viewsettings" in keys:
+        ui.print_settings()
     if "-viewpresets" in keys:
         saving.print_presets(presets, True)
     if "-viewlog" in keys:
@@ -148,17 +224,49 @@ def run_commands(commands):
     if "-logfilemax" in keys:
         for cmd in commands:
             if cmd[0] == "-logfilemax":
-                logging.log_file_max_count = int(cmd[1])
+                logging.log_file_max = int(cmd[1])
     if "-nologging" in keys:
-        logging.no_logging = True
+        for cmd in commands:
+            if cmd[0] == "-nologging":
+                logging.no_logging = cmd[1] == "on"
+    if "-cleanup" in keys:
+        for cmd in commands:
+            if cmd[0] == "-cleanup":
+                files.delete_files = cmd[1] == "on"
     if "-skipfile" in keys:
         for cmd in commands:
             if cmd[0] == "-skipfile":
-                files.skip_files.append(cmd[1])
+                if cmd[1][0:3] == "add":
+                    name = cmd[1][4:len(cmd[1])]
+                    if name not in files.skip_files:
+                        files.skip_files.append(name)
+                elif cmd[1][0:6] == "remove":
+                    remove = cmd[1][7:len(cmd[1])]
+                    for i in range(len(files.skip_files)):
+                        if files.skip_files[i] == remove:
+                            del files.skip_files[i]
+                else:
+                    print("-skipfile requires the add or remove command, see -help for details.")
     if "-skipfolder" in keys:
         for cmd in commands:
             if cmd[0] == "-skipfolder":
-                files.skip_folders.append(cmd[1])
+                if cmd[1][0:3] == "add":
+                    name = cmd[1][4:len(cmd[1])]
+                    if name not in files.skip_folders:
+                        files.skip_folders.append(name)
+                elif cmd[1][0:6] == "remove":
+                    remove = cmd[1][7:len(cmd[1])]
+                    for i in range(len(files.skip_folders)):
+                        if files.skip_folders[i] == remove:
+                            del files.skip_folders[i]
+                else:
+                    print("-skipfolder requires the add or remove command, see -help for details.")
+        # for cmd in commands:
+        #     if cmd[0] == "-skipfolder":
+        #         files.skip_folders.append(cmd[1])
+    saving.save_settings_to_config()
+
+
     # Presets
     if "-createpreset" in keys:
         preset_key = ""
@@ -185,7 +293,7 @@ def run_commands(commands):
         presets[preset_key]["main_folder"] = main_folder
         presets[preset_key]["backup_folders"] = backup_folders
         # ensure changes are persistent
-        saving.save_presets_to_config(presets)
+        saving.save_presets_to_config(presets, using_windows)
     if "-deletepreset" in keys:
         preset_key = ""
         for cmd in commands:
@@ -199,11 +307,14 @@ def run_commands(commands):
             print("Deleted preset: " + preset_key)
             del presets[preset_key]
             # ensure changes are persistent
-            saving.save_presets_to_config(presets)
+            saving.save_presets_to_config(presets, using_windows)
         else:
             print("Key entered '" + preset_key + "' could not be found to be deleted.")
-    # Running Backup
-    if "-runbackup" in keys:
+    # Backup All Presets
+    if "-runbackupall" in keys:
+        run_backup_all(0)
+    # Backup With Input Folders
+    elif "-runbackup" in keys:
         main_folder = ""
         backup_folders = []
         for cmd in commands:
@@ -221,6 +332,7 @@ def run_commands(commands):
             print("The main folder '" + main_folder + "' could not be found.")
             sys.exit(1)
         run_backup(0, main_folder, backup_folders)
+    # Backup a saved preset
     elif "-runpreset" in keys:
         preset_key = ""
         for cmd in commands:
@@ -240,14 +352,14 @@ def run_commands(commands):
         run_backup(0, preset["main_folder"], preset["backup_folders"])
 
 
-def start():
+def start(arguments):
     global using_windows
     global clicked_cancel_button
     using_windows = False
     if 'win32' in platform or 'win64' in platform:
         using_windows = True
     ui.using_gui = False
-    if len(sys.argv) == 1:
+    if len(arguments) == 1:
         ui.using_gui = True
     if not exists("EULA.txt"):
         eula.agreed_to_eula(False)
@@ -257,6 +369,10 @@ def start():
         print(msg)
         logging.print_to_log("Failed_To_Run", msg)
         return
+
+    # loading settings
+    saving.load_settings_from_config()
+
     # Running with graphics
     if ui.using_gui:
         if not eula.eula_agreed_to():
@@ -274,10 +390,8 @@ def start():
             print("PySimpleGui is not installed, please install using pip before using the graphical interface.\n "
                   "Otherwise run the parameter -help to see all command line-only parameters")
             sys.exit(1)
-        # only loading settings in the GUI for now, otherwise they must be entered with run command
-        # to be used
-        saving.load_settings_from_config()
-        ui.show_gui()
+        # saving.load_settings_from_config()
+        ui.show_gui(using_windows)
     # Running with command-line parameters only
     else:
         if not eula.eula_agreed_to():
@@ -289,5 +403,5 @@ def start():
             else:
                 print("Please agree to EULA before using the program. Thank you.")
                 sys.exit(0)
-        commands = saving.sort_arguments(sys.argv)
+        commands = saving.sort_arguments(arguments)
         run_commands(commands)

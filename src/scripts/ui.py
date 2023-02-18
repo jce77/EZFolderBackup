@@ -15,23 +15,12 @@ using_gui = False
 previous_skip_folders = []
 
 
-def get_backup_folders_from_gui(values):
-    """ Returns all the backup folder names that were entered into the GUI """
-    backup_folders = []
-    if len(values["-BACKUP1-"]) > 0:
-        backup_folders.append(values["-BACKUP1-"])
-    if len(values["-BACKUP2-"]) > 0:
-        backup_folders.append(values["-BACKUP2-"])
-    if len(values["-BACKUP3-"]) > 0:
-        backup_folders.append(values["-BACKUP3-"])
-    if len(values["-BACKUP4-"]) > 0:
-        backup_folders.append(values["-BACKUP4-"])
-    if len(values["-BACKUP5-"]) > 0:
-        backup_folders.append(values["-BACKUP5-"])
-    return backup_folders
+def get_listbox_elements(window, key):
+    """ Returns all values currently inside the listbox """
+    return window[key].get_list_values()
 
 
-def show_gui():
+def show_gui(using_windows):
     """ Shows the main GUI """
     main.presets = saving.load_presets()
     preset_keys = []
@@ -46,18 +35,28 @@ def show_gui():
     h1_font = ("Arial Bold", 12)
     h2_font = ("Arial Bold", 10)
 
+    cancel_button_name = " "
+    if not using_windows:
+        cancel_button_name = " Cancel"
+
     left_column = [
-        [
-            gui.Text("Main Folder:"),
-            gui.In(size=(25, 1), enable_events=True, key="-MAIN-FOLDER-"),
-            gui.FolderBrowse(),
-        ],
+        [gui.Frame('Backup Preset', [[gui.Button("New", size=(14, 1), image_filename='images/new_preset.png',
+                                                 mouseover_colors=('#CBCBCB', '#333333')),
+                                      gui.Button("Save", size=(14, 1), image_filename='images/save_preset.png',
+                                                 mouseover_colors=('#CBCBCB', '#333333')),
+                                      gui.Button("Delete", size=(14, 1), image_filename='images/delete_preset.png',
+                                                 mouseover_colors=('#CBCBCB', '#333333'))]],
+                   border_width=1)],
+
+        [gui.Text("Preset Name", font=h2_font)],
+        [gui.In(size=(45, 1), enable_events=True, key="-CURRENT-PRESET-NAME-")],
+
         [
             gui.Text("Backup Presets", font=h1_font),
         ],
         [
             gui.Listbox(
-                values=preset_keys, enable_events=True, size=(40, 20), key="-PRESET LIST-"
+                values=preset_keys, enable_events=True, size=(55, 18), key="-PRESET LIST-"
             )
         ],
         [gui.Frame('', [
@@ -67,51 +66,48 @@ def show_gui():
                         border_width=0,
                         button_color=(gui.theme_background_color(), gui.theme_background_color()), ),
              gui.ProgressBar(BAR_MAX, orientation='h', size=(12.3, 31.5), key='-BAR-', visible=False),
-             gui.Button(" ", size=(14, 1), image_filename='images/cancel.png', visible=False)
+             gui.Button(cancel_button_name, size=(14, 1), image_filename='images/cancel.png', visible=False,
+                        mouseover_colors=('#CBCBCB', '#333333'), auto_size_button=False)
              ]], title_color='yellow', border_width=0)],
     ]
 
     right_column = [
+        [gui.Text("Main Folder", font=h2_font)],
+        [
+            gui.In(size=(35, 1), enable_events=True, key="-MAIN-FOLDER-"),
+            gui.FolderBrowse(),
+        ],
         [gui.Text("Backup Locations", font=h1_font)],
         [
-            gui.Text("Backup 1:"),
-            gui.In(size=(25, 1), enable_events=True, key="-BACKUP1-"),
-            gui.FolderBrowse(),
+            gui.Listbox(
+                values=[], enable_events=True, size=(55, 10), key="-BACKUP-LIST-"
+            )
         ],
-        [
-            gui.Text("Backup 2:"),
-            gui.In(size=(25, 1), enable_events=True, key="-BACKUP2-"),
-            gui.FolderBrowse(),
-        ],
-        [
-            gui.Text("Backup 3:"),
-            gui.In(size=(25, 1), enable_events=True, key="-BACKUP3-"),
-            gui.FolderBrowse(),
-        ],
-        [
-            gui.Text("Backup 4:"),
-            gui.In(size=(25, 1), enable_events=True, key="-BACKUP4-"),
-            gui.FolderBrowse(),
-        ],
-        [
-            gui.Text("Backup 5:"),
-            gui.In(size=(25, 1), enable_events=True, key="-BACKUP5-"),
-            gui.FolderBrowse(),
-        ],
-        [gui.Text("Preset Name", font=h2_font)],
-        [gui.In(size=(25, 1), enable_events=True, key="-CURRENT-PRESET-NAME-")],
 
-        [gui.Frame('Backup Preset', [[gui.Button("New", size=(14, 1), image_filename='images/new_preset.png',
+        [gui.Text("New Backup Location", font=h2_font)],
+        [gui.In(size=(45, 1), enable_events=True, key="-NEW-BACKUP-LOCATION-"),
+         gui.FolderBrowse(),
+         ],
+
+
+
+        [gui.Frame('Backup Location', [[gui.Button("New", key="-NEW-BACKUP-", size=(14, 1), image_filename='images/new_preset.png',
                                                  mouseover_colors=('#CBCBCB', '#333333')),
-                         gui.Button("Save", size=(14, 1), image_filename='images/save_preset.png',
-                                    mouseover_colors=('#CBCBCB', '#333333')),
-                         gui.Button("Delete", size=(14, 1), image_filename='images/delete_preset.png',
-                                    mouseover_colors=('#CBCBCB', '#333333'))]],
+                                      gui.Button("Add", key="-ADD-NEW-BACKUP-", size=(14, 1), image_filename='images/add.png',
+                                                 mouseover_colors=('#CBCBCB', '#333333')),
+                                      gui.Button("Remove", key="-REMOVE-NEW-BACKUP-", size=(14, 1), image_filename='images/remove.png',
+                                                 mouseover_colors=('#CBCBCB', '#333333'))]],
                    border_width=1)],
+
+
+
         [gui.Frame('', [[gui.Button("Run Backup", size=(14, 1), image_filename='images/backup_files.png',
                                     mouseover_colors=('#CBCBCB', '#333333')),
                          gui.Button("View Log", size=(14, 1), image_filename='images/view_log.png',
-                                    mouseover_colors=('#CBCBCB', '#333333'))]],
+                                    mouseover_colors=('#CBCBCB', '#333333')),
+                         gui.Button("Backup All", size=(14, 1), image_filename='images/backup_all.png',
+                                    mouseover_colors=('#CBCBCB', '#333333'))
+                         ]],
                    border_width=0)],
         [gui.Frame('', [[gui.Button("Settings", size=(14, 1), image_filename='images/settings.png',
                                     mouseover_colors=('#CBCBCB', '#333333')),
@@ -170,42 +166,78 @@ def show_gui():
             if len(main.presets) > 0:
                 preset_name = values["-CURRENT-PRESET-NAME-"]
                 main.presets = files.move_index_in_dict(main.presets, preset_name, True)
-                saving.save_presets_to_config(main.presets)
+                saving.save_presets_to_config(main.presets, main.using_windows)
                 refresh_presets_list(window, main.presets)
                 window["-PRESET LIST-"].set_value(preset_name)
         elif event == "Move Down":
             if len(main.presets) > 0:
                 preset_name = values["-CURRENT-PRESET-NAME-"]
                 main.presets = files.move_index_in_dict(main.presets, preset_name, False)
-                saving.save_presets_to_config(main.presets)
+                saving.save_presets_to_config(main.presets, main.using_windows)
                 refresh_presets_list(window, main.presets)
                 window["-PRESET LIST-"].set_value(preset_name)
-        elif event == "Run Backup":
-            use_backup_folders = get_backup_folders_from_gui(values)
-            if files.valid_input_for_backup(values):
-                if not question_box("Backup files for preset '" + str(values["-CURRENT-PRESET-NAME-"]) + "'?\n" +
-                        "(Files that no longer exist in the Main Folder will be trashed)", 80, 15):
+        elif event == "Backup All":
+            if len(main.presets) > 0:
+                check_box_text = 'Send deleted files to Recycle Bin?' if using_windows else \
+                    'Send deleted files to Trash?'
+                response = question_box_with_radio("Backup files for all presets?", check_box_text, files.delete_files,
+                                                   80, 15)
+                # user clicked x box or answered no
+                if type(response) == bool or not response[0]:
                     continue
-                main.run_backup(window, values["-MAIN-FOLDER-"], use_backup_folders)
+                files.delete_files = response[1]
+                saving.save_settings_to_config()
+                main.run_backup_all(window)
             else:
+                window["-ERROR-TEXT-"].update("No presets are saved")
+        elif event == "Run Backup":
+            check_box_text = 'Send deleted files to Recycle Bin?' if using_windows else 'Send deleted files to Trash?'
+            use_backup_folders = get_listbox_elements(window, "-BACKUP-LIST-")
+            response = question_box_with_radio("Backup files for preset '" +
+                                               str(values["-CURRENT-PRESET-NAME-"]) + "'?\n", check_box_text,
+                                               files.delete_files, 80, 15)
+            # user clicked x box or answered no
+            if not files.valid_input_for_backup(window, values):
                 window["-ERROR-TEXT-"].update("You must set the main drive and at least one backup drive")
+                continue
+            if type(response) == bool or not response[0]:
+                continue
+            files.delete_files = response[1]
+            saving.save_settings_to_config()
+            main.run_backup(window, values["-MAIN-FOLDER-"], use_backup_folders)
+        elif event == "-NEW-BACKUP-":
+            window["-NEW-BACKUP-LOCATION-"].update("")
+            window["-BACKUP-LIST-"].update(set_to_index=[])
+            window["-BACKUP-LIST-"].metadata = []
         elif event == "New":
-            window["-MAIN-FOLDER-"].update("")
-            window["-BACKUP1-"].update("")
-            window["-BACKUP2-"].update("")
-            window["-BACKUP3-"].update("")
-            window["-BACKUP4-"].update("")
-            window["-BACKUP5-"].update("")
-            window["-CURRENT-PRESET-NAME-"].update("")
-
-        elif event == "Delete":
+            clear_preset_info(window)
+        elif event == "-ADD-NEW-BACKUP-":  # adding a backup location to the right
+            print("Added backup location from GUI: " + str(values["-NEW-BACKUP-LOCATION-"]))
+            new_values = window["-BACKUP-LIST-"].get_list_values()
+            if len(values["-NEW-BACKUP-LOCATION-"]) > 0 and values["-NEW-BACKUP-LOCATION-"] not in new_values:
+                new_values.append(values["-NEW-BACKUP-LOCATION-"])
+                window["-BACKUP-LIST-"].update(values=new_values)
+                # refresh_backup_locations_list(window, main.presets)
+                window["-BACKUP-LIST-"].set_value(values["-NEW-BACKUP-LOCATION-"])
+        elif event == "-REMOVE-NEW-BACKUP-":  # deleting a backup location from the right
+            new_values = window["-BACKUP-LIST-"].get_list_values()
+            for i in range(len(new_values)):
+                if new_values[i] == values["-NEW-BACKUP-LOCATION-"]:
+                    del new_values[i]
+                    break
+            window["-BACKUP-LIST-"].update(values=new_values)
+            print("Deleted backup location from GUI: " + str(values["-NEW-BACKUP-LOCATION-"]))
+            # refresh_backup_locations_list(window, main.presets)
+            window["-NEW-BACKUP-LOCATION-"].update("")
+        elif event == "Delete":  # deleting a preset from the left
             if values["-CURRENT-PRESET-NAME-"] in main.presets:
                 if not question_box("Delete preset '" + str(values["-CURRENT-PRESET-NAME-"]) + "'?", 80, 15):
                     continue
                 print("Deleted Preset: " + str(values["-CURRENT-PRESET-NAME-"]))
                 del main.presets[values["-CURRENT-PRESET-NAME-"]]
                 refresh_presets_list(window, main.presets)
-                saving.save_presets_to_config(main.presets)
+                saving.save_presets_to_config(main.presets, main.using_windows)
+                clear_preset_info(window)
             else:
                 window["-ERROR-TEXT-"].update("Cannot Delete, Not Found")
         elif event == "Save":
@@ -213,29 +245,29 @@ def show_gui():
             if len(preset_key) == 0:
                 window["-ERROR-TEXT-"].update("Backup Preset Name is not set")
             else:
-                print("Saved Preset: " + str(preset_key))
                 if preset_key in main.presets:
                     if not question_box("Overwrite preset '" + str(preset_key) + "'?", 65, 15):
                         continue
                 main.presets[preset_key] = {}  # {"main_folder": values["-MAIN-FOLDER-"], "backup_folders": []}
                 main.presets[preset_key]["main_folder"] = values["-MAIN-FOLDER-"]
-                main.presets[preset_key]["backup_folders"] = []
-                if len(values["-BACKUP1-"].strip()) > 0:
-                    main.presets[preset_key]["backup_folders"].append(values["-BACKUP1-"])
-                if len(values["-BACKUP2-"].strip()) > 0:
-                    main.presets[preset_key]["backup_folders"].append(values["-BACKUP2-"])
-                if len(values["-BACKUP3-"].strip()) > 0:
-                    main.presets[preset_key]["backup_folders"].append(values["-BACKUP3-"])
-                if len(values["-BACKUP4-"].strip()) > 0:
-                    main.presets[preset_key]["backup_folders"].append(values["-BACKUP4-"])
-                if len(values["-BACKUP5-"].strip()) > 0:
-                    main.presets[preset_key]["backup_folders"].append(values["-BACKUP5-"])
+                main.presets[preset_key]["backup_folders"] = window["-BACKUP-LIST-"].get_list_values()
                 if len(main.presets[preset_key]["backup_folders"]) == 0:
                     window["-ERROR-TEXT-"].update("Enter at least one backup folder")
+                    del main.presets[preset_key]
+                    continue
                 else:
                     refresh_presets_list(window, main.presets)
-                    saving.save_presets_to_config(main.presets)
-        elif event == "-PRESET LIST-":  # A file was chosen from the listbox
+                    saving.save_presets_to_config(main.presets, main.using_windows)
+                    preset_name = values["-CURRENT-PRESET-NAME-"]
+                    window["-PRESET LIST-"].set_value(preset_name)
+                    print("Saved Preset: " + str(preset_key))
+
+        elif event == "-BACKUP-LIST-":  # A backup location was chosen from the listbox on the right
+            # list_values = window["-BACKUP-LIST-"].get_list_values()
+            if len(values["-BACKUP-LIST-"]) > 0:
+                clicked_key = str(values["-BACKUP-LIST-"][0])
+                window["-NEW-BACKUP-LOCATION-"].update(value=values["-BACKUP-LIST-"][0])
+        elif event == "-PRESET LIST-":  # A file was chosen from the listbox on the left
             if len(values["-PRESET LIST-"]) > 0:
                 clicked_key = str(values["-PRESET LIST-"][0])
                 preset = main.presets[clicked_key]
@@ -250,10 +282,32 @@ def show_gui():
     window.close()
 
 
-def set_loading_bar_visible(window, value):
+def clear_backup_locations_box(window):
+    window["-BACKUP-LIST-"].update(values=[])
+
+
+def clear_preset_info(window):
+    window["-MAIN-FOLDER-"].update("")
+    clear_backup_locations_box(window)
+    window["-CURRENT-PRESET-NAME-"].update("")
+    window["-NEW-BACKUP-LOCATION-"].update("")
+
+
+def set_loading_bar_visible(window, value, using_windows):
     window["-BAR-"].update(visible=value)
-    window[" "].update(visible=value)
-    # window["Cancel"].update(visible=value)
+    if using_windows:
+        window[" "].update(visible=value)
+    else:    
+        window[" Cancel"].update(visible=value)
+    window.refresh()
+
+
+def refresh_backup_locations_list(window, backup_locations):
+    """ Updates the list of backup locations in the right column """
+    backup_location_keys = []
+    for location in backup_locations:
+        backup_location_keys.append(str(location))
+    window["-BACKUP-LIST-"].update(values=backup_location_keys)
 
 
 def refresh_presets_list(window, presets):
@@ -267,32 +321,37 @@ def refresh_presets_list(window, presets):
 def show_settings_box():
     global previous_skip_folders
     previous_skip_files = copy.copy(files.skip_files)
+
+    # region 1. layout
+
     layout = [
         [gui.Text('Settings:')],
         [gui.Frame('', [[gui.Text("Max number of log files: "),
                          gui.Input("", size=(14, 1), key="-MAX-LOG-FILES-")]], border_width=0)],
         [gui.Frame('', [[gui.Text("Do not log backups: "),
                          gui.Checkbox("", size=(14, 1), key="-DO-NOT-LOG-")]], border_width=0)],
+        [gui.Frame('', [[gui.Text("Recycle/Trash deleted files: "),
+                         gui.Checkbox("", size=(14, 1), key="-DELETE-FILES-")]], border_width=0)],
 
         # IGNORE FILE
-        [gui.Frame('', [[gui.Text("File Names to ignore:", size=(20, 1))]], title_color='yellow', border_width=0)],
+        [gui.Frame('', [[gui.Text("File names to ignore: ", size=(20, 1))]], title_color='yellow', border_width=0)],
         [gui.Frame('', [[gui.Listbox(
             values=files.skip_files, enable_events=True, size=(30, 10), key="-IGNORED-FILES-"
         )]], border_width=0)],
 
         [gui.Frame('',
-                   [[gui.Text("Ignore Filename:", size=(16, 1)), gui.Input("", size=(14, 1), key="-IGNORE-FILENAME-"),
+                   [[gui.Text("Ignore File Name:", size=(16, 1)), gui.Input("", size=(14, 1), key="-IGNORE-FILENAME-"),
                      gui.Button("Add", size=(14, 1), key="-ADD-IGNORED-"),
                      gui.Button("Remove", size=(14, 1), key="-REMOVE-IGNORED-")]], border_width=0)],
 
         # IGNORE FOLDER
-        [gui.Frame('', [[gui.Text("Folder Names to ignore:", size=(20, 1))]], title_color='yellow', border_width=0)],
+        [gui.Frame('', [[gui.Text("Folder names to ignore:", size=(20, 1))]], title_color='yellow', border_width=0)],
         [gui.Frame('', [[gui.Listbox(
             values=files.skip_folders, enable_events=True, size=(30, 10), key="-IGNORED-FOLDERS-"
         )]], border_width=0)],
 
         [gui.Frame('',
-                   [[gui.Text("Ignore Folder:", size=(16, 1)), gui.Input("", size=(14, 1), key="-IGNORE-FOLDER-"),
+                   [[gui.Text("Ignore Folder Name:", size=(16, 1)), gui.Input("", size=(14, 1), key="-IGNORE-FOLDER-"),
                      gui.Button("Add", size=(14, 1), key="-ADD-IGNORED-FOLDER-"),
                      gui.Button("Remove", size=(14, 1), key="-REMOVE-IGNORED-FOLDER-")]], border_width=0)],
 
@@ -305,20 +364,25 @@ def show_settings_box():
     ]
     window = gui.Window("EZ Folder Backup Settings", layout, margins=(8, 20), icon=main.icon_file,
                         element_justification='l', finalize=True)
-    # previous_log_file_max_count = copy.copy(log_file_max_count)
-    window["-MAX-LOG-FILES-"].update(str(logging.log_file_max_count))
+
+    # endregion
+
+    # previous_logfilemax = copy.copy(logfilemax)
+    window["-MAX-LOG-FILES-"].update(str(logging.log_file_max))
     # previous_no_logging = copy.copy(no_logging)
-    if logging.no_logging:
-        window["-DO-NOT-LOG-"].update(True)
+    window["-DO-NOT-LOG-"].update(logging.no_logging)
+    window["-DELETE-FILES-"].update(files.delete_files)
     while True:
         event, values = window.read()
         if event == "-ADD-IGNORED-":
             to_add = values["-IGNORE-FILENAME-"]
+            window["-IGNORE-FILENAME-"].update("")
             if to_add not in files.skip_files:
                 files.skip_files.append(to_add)
                 window["-IGNORED-FILES-"].update(files.skip_files)
         if event == "-REMOVE-IGNORED-":
             to_remove = values["-IGNORE-FILENAME-"]
+            window["-IGNORE-FILENAME-"].update("")
             if to_remove[0] == '(':
                 to_remove = to_remove[2:len(to_remove) - 3]
             else:
@@ -337,18 +401,20 @@ def show_settings_box():
         # ADDING AND REMOVING IGNORED FOLDERS
         if event == "-ADD-IGNORED-FOLDER-":
             to_add = values["-IGNORE-FOLDER-"]
+            window["-IGNORE-FOLDER-"].update("")
             if to_add not in files.skip_folders:
                 files.skip_folders.append(to_add)
                 window["-IGNORED-FOLDERS-"].update(files.skip_folders)
         if event == "-REMOVE-IGNORED-FOLDER-":
             to_remove = values["-IGNORE-FOLDER-"]
+            window["-IGNORE-FOLDER-"].update("")
             if to_remove[0] == '(':
                 to_remove = to_remove[2:len(to_remove) - 3]
             # print("trying to remove " + str(to_remove) + " with " + str(len(skip_folders)) + "files to skip")
             for i in range(0, len(files.skip_folders)):
                 # print(str(i))
                 # print("comparing " + str(skip_folders[i]) + " to " + str(to_remove))
-                if files.skip_folders[i] == to_remove: # if file to remove found
+                if files.skip_folders[i] == to_remove:  # if file to remove found
                     # print("deleting from files to skip")
                     del files.skip_folders[i]
                     window["-IGNORED-FOLDERS-"].update(files.skip_folders)
@@ -368,12 +434,13 @@ def show_settings_box():
             window["-IGNORE-FOLDER-"].update(value)
         if event == "Save":
             logging.no_logging = values["-DO-NOT-LOG-"]
-            logging.log_file_max_count = int(values["-MAX-LOG-FILES-"])
+            files.delete_files = values["-DELETE-FILES-"]
+            logging.log_file_max = int(values["-MAX-LOG-FILES-"])
             saving.save_settings_to_config()
             break
         if event == "Apply":
             logging.no_logging = values["-DO-NOT-LOG-"]
-            logging.log_file_max_count = int(values["-MAX-LOG-FILES-"])
+            logging.log_file_max = int(values["-MAX-LOG-FILES-"])
             previous_skip_files = copy.copy(files.skip_files)
             previous_skip_folders = copy.copy(files.skip_folders)
             # skip_files should already be setup
@@ -406,6 +473,30 @@ def show_support_email():
         if event == gui.WIN_CLOSED:
             break
     window.close()
+
+
+def question_box_with_radio(question, radio_text, radio_value, x_size, y_size):
+    """ Opens a binary question box with a radio button and returns a tuple with the two booleans """
+    layout = [
+        [gui.Text(str(question))],
+        [gui.Frame('', [[gui.Button("Yes", size=(5, 1)),
+                         gui.Button("No", size=(5, 1))],
+                        [gui.Checkbox(radio_text, default=radio_value, key="Cleanup")]],
+                   border_width=0)],
+    ]
+    window = gui.Window("EZ Folder Backup", layout, margins=(x_size, y_size), icon=main.icon_file,
+                        element_justification='c')
+    answered_yes = False
+    while True:
+        event, values = window.read()
+        if event == "Yes":
+            answered_yes = True
+            break
+        if event == "No" or event == gui.WIN_CLOSED:
+            answered_yes = False
+            break
+    window.close()
+    return answered_yes, values["Cleanup"]
 
 
 def question_box(question, x_size, y_size):
@@ -445,12 +536,45 @@ def format_text_for_gui_display(text):
     return text
 
 
+def bool_to_str(state):
+    if state:
+        return "On"
+    else:
+        return "Off"
+
+
+def print_settings():
+    saving.load_settings_from_config()
+    msg = "-----------------------------------SETTINGS-------------------------------------\n"
+    msg += "Max number of log files: " + str(logging.log_file_max) + "\n\n"
+    msg += "Do not log backups: " + bool_to_str(logging.no_logging) + "\n\n"
+    msg += "Recycle/Trash deleted files: " + bool_to_str(files.delete_files) + "\n\n"
+    msg += "File Names to ignore: \n"
+    if len(files.skip_files) == 0:
+        msg += "    [None]\n"
+    else:
+        for name in files.skip_files:
+            msg += "    " + name + "\n"
+    msg += "\n"
+    msg += "Folder Names to ignore: \n"
+    if len(files.skip_folders) == 0:
+        msg += "    [None]\n"
+    else:
+        for name in files.skip_folders:
+            msg += "    " + name + "\n"
+    msg += "--------------------------------------------------------------------------------"
+
+    print(msg)
+
+
 def print_help_commands(print_in_console):
     msg = "--------------------------------------------------------------------------------\n" \
           " EZ Folder Backup Parameters:                                                 \n" \
           "                                                                              \n" \
-          "-b path..............................Adds a single backup folder to be used in\n" \
-          "                                     this command. Can be used max five times.\n" \
+          "-cleanup on..........................Toggles on deletion of files that no     \n" \
+          "                                     longer exist in the main folder.         \n" \
+          "-cleanup off.........................Toggles off deletion of files that no    \n" \
+          "                                     longer exist in the main folder.         \n" \
           "-createpreset name -m path -b path...Creates a preset with the input name,    \n" \
           "                                     main folder, and up to five backup       \n" \
           "                                     folder paths that are preceded by -b.    \n" \
@@ -458,29 +582,46 @@ def print_help_commands(print_in_console):
           "-h...................................Show help menu and exit.                 \n" \
           "-hf..................................Creates a file help.txt containing the   \n" \
           "                                     help menu.                               \n" \
-          "-logfilemax count....................Set max number of log files are deleted. \n" \
-          "-m path..............................Adds the path to the single main folder  \n" \
-          "                                     to be used for this command.             \n" \
+          "-logfilemax count....................Sets the maximum number of log files     \n" \
+          "                                     before the oldest file is deleted.       \n" \
           "-movedown name.......................Moves the input preset down in the list. \n" \
           "-moveup name.........................Moves the input preset up in the list.   \n" \
-          "-nologging...........................Stops debug logs from being printed after\n" \
-          "                                     backups.                                 \n" \
+          "-nologging on........................Toggles on stopping debug logs from being\n" \
+          "                                     printed after backups.                   \n" \
+          "-nologging off.......................Toggles off stopping debug logs from     \n" \
+          "                                     being printed after backups.             \n" \
           "-runbackup -m path -b path...........Runs backup for main folder -m and up to \n" \
           "                                     five backup folders that are each        \n" \
-          "                                     preceded by -b.                          \n" \
+          "                                     preceded by -b. Optionally add '-cleanup'\n" \
+          "                                     to delete files that no longer exist in  \n" \
+          "                                     the main folder.                         \n" \
+          "-runbackupall........................Runs backup for every saved preset.      \n" \
+          "                                     Optionally add '-cleanup' to delete files\n" \
+          "                                     that no longer exist in the main folder. \n" \
           "-runpreset name......................Runs backup for the input preset.        \n" \
-          "-skipfile filename...................Skips this filename, use -skipfile once  \n" \
-          "                                     per new filename to be skipped.          \n" \
-          "-skipfolder foldername...............Skips this folder name, use -skipfolder  \n" \
+          "-skipfile add filename...............Skips this filename, use -skipfile once  \n" \
+          "                                     per new filename to be skipped. Do not   \n" \
+          "                                     enter a path, just the file name.        \n" \
+          "-skipfile remove filename............Removes a skipped file name.             \n" \
+          "-skipfolder add foldername...........Skips this folder name, use -skipfolder  \n" \
           "                                     once per new filename to be skipped. Do  \n" \
           "                                     not enter a path, just the folder name.  \n" \
+          "-skipfolder remove foldername........Removes a skipped folder name.           \n" \
+          "-skippath remove pathname............Removes a skipped path name.             \n" \
           "-support.............................Show support email for questions.        \n" \
           "-version.............................Show the current version of this program.\n" \
           "-viewlog.............................Show latest log file.                    \n" \
           "-viewpresets.........................Shows all presets.                       \n" \
+          "-viewsettings........................Shows the current settings.              \n" \
           "                                                                              \n" \
           "To make a donation, please visit https://ko-fi.com/jcecode                    \n" \
           "--------------------------------------------------------------------------------\n"
+
+    # ^^ maybe implement later
+    #  "-skippath add pathname...............Skips this specific location on your     \n" \
+    #  "                                     system from being checked for backup.    \n" \
+    #  "                                     Either a file or a folder.               \n" \
+
     if print_in_console:
         print(msg)
     return msg
