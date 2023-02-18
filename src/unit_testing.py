@@ -26,6 +26,7 @@ class TestStringMethods(unittest.TestCase):
         main.program.saving.load_settings_from_config()
         new_log_files = []
         count = 0
+        files.assure_path_to_file_exists(os.getcwd() + "/log")
         while len(os.listdir(os.getcwd() + "/log")) < test_value_int:
             count += 1
             filename, trashed_file = logging.print_log("Test Log" + str(count))
@@ -97,8 +98,15 @@ class TestStringMethods(unittest.TestCase):
     def test_command_line_create_and_delete_preset(self):
         """ Creates a number of presets and files, and ensures copying/moving/deleting all works """
         print(">>>>>>>TEST test_create_and_delete_preset")
-        main.testing_start("-createpreset Test Preset 83245 -m C:/main folder -b C:/backup 1 -b C:/backup 2 "
-                           "-b C:/backup 3 -b C:/backup 4 -b C:/backup 5".split(" "))
+        if main.program.using_windows:
+            prompt = "-createpreset Test Preset 83245 -m C:\\main folder -b C:\\backup 1 -b C:\\backup 2 " \
+                     "-b C:\\backup 3 -b C:\\backup 4 -b C:\\backup 5".split(" ")
+            l = "\\"
+        else:
+            prompt = "-createpreset Test Preset 83245 -m C:/main folder -b C:/backup 1 -b C:/backup 2 " \
+                     "-b C:/backup 3 -b C:/backup 4 -b C:/backup 5".split(" ")
+            l = "/"
+        main.testing_start(prompt)
         f = open(os.getcwd() + "/presets/presets.cfg", "r")
         passed = False
         step = 0
@@ -107,22 +115,22 @@ class TestStringMethods(unittest.TestCase):
                 if "Test Preset 83245" in line:
                     step += 1
             elif step == 1:
-                if "C:\\main folder" in line:
+                if "C:" + l + "main folder" in line:
                     step += 1
             elif step == 2:
-                if "C:\\backup 1" in line:
+                if "C:" + l + "backup 1" in line:
                     step += 1
             elif step == 3:
-                if "C:\\backup 2" in line:
+                if "C:" + l + "backup 2" in line:
                     step += 1
             elif step == 4:
-                if "C:\\backup 3" in line:
+                if "C:" + l + "backup 3" in line:
                     step += 1
             elif step == 5:
-                if "C:\\backup 4" in line:
+                if "C:" + l + "backup 4" in line:
                     step += 1
             elif step == 6:
-                if "C:\\backup 5" in line:
+                if "C:" + l + "backup 5" in line:
                     passed = True
         f.close()
         if passed:
