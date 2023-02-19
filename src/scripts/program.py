@@ -1,6 +1,4 @@
 import os
-import threading
-
 from scripts import eula
 from scripts import ui
 from scripts import saving
@@ -17,7 +15,7 @@ main_folder = ""
 
 presets = {}
 icon_file = ""
-version = "1.1.4"
+version = "1.1.5"
 using_windows = False
 
 
