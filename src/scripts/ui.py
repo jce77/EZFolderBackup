@@ -48,6 +48,7 @@ def get_button_tooltips():
 
 def check_for_images(using_windows):
     """ Copies over the images folder if any of the images are not found """
+
     image_names = [
         'images/new_preset.png', 'images/save_preset.png', 'images/delete_preset.png', 'images/up_arrow.png',
         'images/down_arrow.png', 'images/cancel.png', 'images/add.png', 'images/remove.png',
@@ -63,10 +64,11 @@ def check_for_images(using_windows):
         os.mkdir('images/')
         # for each subfolder in the parent folder of the current working directory
         for subdir1 in [f.path for f in os.scandir(os.path.dirname(os.getcwd())) if f.is_dir()]:
+            if subdir1 == os.getcwd():
+               continue
             if os.path.basename(os.path.normpath(subdir1)) != 'build' and \
                     os.path.basename(os.path.normpath(subdir1)) != 'src':
                 continue
-
             # checking for images folder in here
             for subdir2 in [f.path for f in os.scandir(subdir1) if f.is_dir()]:
                 if os.path.basename(os.path.normpath(subdir2)) != 'images':
