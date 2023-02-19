@@ -58,40 +58,47 @@ def check_for_images(using_windows):
 
     # region 1. copying images if they are in a nearby folder, like running src files from the fresh download
     # if images folder does not exist at all, copy it over
+    done = False
     if not os.path.exists('images/'):
         os.mkdir('images/')
         # for each subfolder in the parent folder of the current working directory
         for subdir1 in [f.path for f in os.scandir(os.path.dirname(os.getcwd())) if f.is_dir()]:
-            if os.path.basename(os.path.normpath(subdir1)) == 'build' or \
-                    os.path.basename(os.path.normpath(subdir1)) == 'src':
-                # checking for images folder in here
-                for subdir2 in [f.path for f in os.scandir(subdir1) if f.is_dir()]:
-                    if os.path.basename(os.path.normpath(subdir2)) == 'images':
-                        # copying all .png and .ico files into 'images/' folder
-                        files = main.files.get_all_filenames(subdir2)
-                        for file in files:
-                            extension = file[len(file) - 4: len(file)]
-                            if extension == '.png' or extension == '.ico':
-                                # region 1. check that this filename is exists in the list of image names
-                                # just in case
-                                found = False
-                                for image in image_names:
-                                    if os.path.basename(image) == os.path.basename(file):
-                                        found = True
-                                        break
-                                if not found:
-                                    continue
-                                # endregion
+            if os.path.basename(os.path.normpath(subdir1)) != 'build' and \
+                    os.path.basename(os.path.normpath(subdir1)) != 'src':
+                continue
 
-                                # region 2. copying this file to the local images folder
-                                destination = main.files.format_text(os.getcwd() + '/images/' +
-                                                                     os.path.basename(file), using_windows)
-                                shutil.copyfile(file, destination)
-                                print("Copying image file: " + file + " to local 'images' folder")
-                                # endregion
-                                pass
-                        pass
-            continue
+            # checking for images folder in here
+            for subdir2 in [f.path for f in os.scandir(subdir1) if f.is_dir()]:
+                if os.path.basename(os.path.normpath(subdir2)) != 'images':
+                    continue
+                # copying all .png and .ico files into 'images/' folder
+                files = main.files.get_all_filenames(subdir2)
+                for file in files:
+                    extension = file[len(file) - 4: len(file)]
+                    if extension == '.png' or extension == '.ico':
+                        # region 1. check that this filename is exists in the list of image names
+                        # just in case
+                        found = False
+                        for image in image_names:
+                            if os.path.basename(image) == os.path.basename(file):
+                                found = True
+                                break
+                        if not found:
+                            continue
+                        # endregion
+
+                        # region 2. copying this file to the local images folder
+                        destination = main.files.format_text(os.getcwd() + '/images/' +
+                                                             os.path.basename(file), using_windows)
+                        shutil.copyfile(file, destination)
+                        done = True
+                        print("Copying image file: " + file + " to local 'images' folder")
+                        # endregion
+                done = True
+                break
+            if done:
+                break
+
     # endregion
 
     # 2. checking that all the images are there, otherwise alert the user if one is missing to download the new images

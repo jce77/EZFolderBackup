@@ -365,7 +365,8 @@ def start(arguments):
     msg = trash.start(ui.using_gui, using_windows)
     if msg != "Passed":
         print(msg)
-        logging.print_to_log("Failed_To_Run", msg)
+        logging.log_file += msg
+        logging.print_log("Failed_To_Run")
         return
 
     # loading settings
