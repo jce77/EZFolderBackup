@@ -654,7 +654,7 @@ def question_box_with_radio(question, radio_text, radio_value, x_size, y_size):
         [gui.Text(str(question))],
         [gui.Frame('', [[gui.Button("Yes", size=(5, 1)),
                          gui.Button("No", size=(5, 1))],
-                        [gui.Checkbox(radio_text, default=radio_value, key="Cleanup")]],
+                        [gui.Checkbox(radio_text, default=radio_value, key="Answer")]],
                    border_width=0)],
     ]
     window = gui.Window("EZ Folder Backup", layout, margins=(x_size, y_size), icon=main.icon_file,
@@ -669,16 +669,11 @@ def question_box_with_radio(question, radio_text, radio_value, x_size, y_size):
             answered_yes = False
             break
     window.close()
-    return answered_yes, values["Cleanup"]
+    return answered_yes, values["Answer"]
 
 
 def question_box(question, x_size, y_size):
     """ Opens a binary question box and returns the users answer """
-
-    # gui.Column(left_column),
-    # gui.VSeperator(),
-    # gui.Column(right_column),
-
     layout = [
         [gui.Text(str(question))],
         [gui.Frame('', [[gui.Button("Yes", size=(5, 1)),
@@ -717,6 +712,7 @@ def bool_to_str(state):
 
 
 def print_settings():
+    """ shows the current settings in the console """
     saving.load_settings_from_config()
     msg = "-----------------------------------SETTINGS-------------------------------------\n"
     msg += "Max number of log files: " + str(logging.log_file_max) + "\n\n"
@@ -741,37 +737,28 @@ def print_settings():
 
 
 def print_help_commands(print_in_console):
+    """ prints and returns a string containing the help commands """
     msg = "--------------------------------------------------------------------------------\n" \
           " EZ Folder Backup Parameters:                                                 \n" \
           "                                                                              \n" \
-          "-cleanup on..........................Toggles on deletion of files that no     \n" \
-          "                                     longer exist in the main folder.         \n" \
-          "-cleanup off.........................Toggles off deletion of files that no    \n" \
-          "                                     longer exist in the main folder.         \n" \
-          "-createpreset name -m path -b path...Creates a preset with the input name,    \n" \
-          "                                     main folder, and up to five backup       \n" \
-          "                                     folder paths that are preceded by -b.    \n" \
+          "-createpreset name -m path -b path...Creates a preset with a name, main folder\n" \
+          "                                     and one or more backup folders that are  \n" \
+          "                                     each preceded by -b.                     \n" \
           "-deletepreset name...................Deletes the preset with the input name.  \n" \
           "-h...................................Show help menu and exit.                 \n" \
           "-hf..................................Creates a file help.txt containing the   \n" \
           "                                     help menu.                               \n" \
           "-logfilemax count....................Sets the maximum number of log files     \n" \
-          "                                     before the oldest file is deleted.       \n" \
+          "                                     before the oldest file is always deleted.\n" \
           "-movedown name.......................Moves the input preset down in the list. \n" \
           "-moveup name.........................Moves the input preset up in the list.   \n" \
-          "-nologging on........................Toggles on stopping debug logs from being\n" \
-          "                                     printed after backups.                   \n" \
-          "-nologging off.......................Toggles off stopping debug logs from     \n" \
-          "                                     being printed after backups.             \n" \
-          "-runbackup -m path -b path...........Runs backup for main folder -m and up to \n" \
-          "                                     five backup folders that are each        \n" \
-          "                                     preceded by -b. Optionally add '-cleanup'\n" \
-          "                                     to delete files that no longer exist in  \n" \
-          "                                     the main folder.                         \n" \
+          "-nologging on........................Backups will not create log files.       \n" \
+          "-nologging off.......................Each backup will create a log file.      \n" \
+          "-runbackup -m path -b path...........Runs backup for main folder -m and one or\n" \
+          "                                     more backup folders that are each        \n" \
+          "                                     preceded by -b.                          \n" \
           "-runbackupall........................Runs backup for every saved preset.      \n" \
-          "                                     Optionally add '-cleanup' to delete files\n" \
-          "                                     that no longer exist in the main folder. \n" \
-          "-runpreset name......................Runs backup for the input preset.        \n" \
+          "-runpreset name......................Runs backup for the input preset name.   \n" \
           "-skipfile add filename...............Skips this filename, use -skipfile once  \n" \
           "                                     per new filename to be skipped. Do not   \n" \
           "                                     enter a path, just the file name.        \n" \
@@ -780,10 +767,13 @@ def print_help_commands(print_in_console):
           "                                     once per new filename to be skipped. Do  \n" \
           "                                     not enter a path, just the folder name.  \n" \
           "-skipfolder remove foldername........Removes a skipped folder name.           \n" \
-          "-skippath remove pathname............Removes a skipped path name.             \n" \
           "-support.............................Show support email for questions.        \n" \
+          "-trashfiles on.......................Toggles on recycling/trashing of files   \n" \
+          "                                     that no longer exist in the main folder. \n" \
+          "-trashfiles off......................Toggles off recycling/trashing of files  \n" \
+          "                                     that no longer exist in the main folder. \n" \
           "-version.............................Show the current version of this program.\n" \
-          "-viewlog.............................Show latest log file.                    \n" \
+          "-viewlog.............................Show the latest log file.                \n" \
           "-viewpresets.........................Shows all presets.                       \n" \
           "-viewsettings........................Shows the current settings.              \n" \
           "                                                                              \n" \
@@ -794,17 +784,13 @@ def print_help_commands(print_in_console):
           "       https://ko-fi.com/jcecode                                              \n" \
           "--------------------------------------------------------------------------------\n"
 
-    # ^^ maybe implement later
-    #  "-skippath add pathname...............Skips this specific location on your     \n" \
-    #  "                                     system from being checked for backup.    \n" \
-    #  "                                     Either a file or a folder.               \n" \
-
     if print_in_console:
         print(msg)
     return msg
 
 
 def create_help_file():
+    """ Creates a text file containing the help commands """
     help_file_text = print_help_commands(False)
     with open("help.txt", "w",
               encoding="utf-8") as f:

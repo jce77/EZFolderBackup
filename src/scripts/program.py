@@ -249,9 +249,9 @@ def run_commands(commands):
         for cmd in commands:
             if cmd[0] == "-nologging":
                 logging.no_logging = cmd[1] == "on"
-    if "-cleanup" in keys:
+    if "-trashfiles" in keys:
         for cmd in commands:
-            if cmd[0] == "-cleanup":
+            if cmd[0] == "-trashfiles":
                 files.delete_files = cmd[1] == "on"
     if "-skipfile" in keys:
         for cmd in commands:
