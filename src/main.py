@@ -8,7 +8,8 @@ Update v1.1.5
 - Added tooltips to the UI buttons
 - Images folder gets copied into the current directory if its nearby, for when compiling scripts from fresh project download.
 - Updated README file
-
+- Each backup location is now selected during its backup
+- A total operation count is now shown at the end of the backup log for all operations
 
 
 

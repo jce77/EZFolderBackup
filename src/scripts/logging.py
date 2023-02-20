@@ -9,6 +9,23 @@ log_file_max = 50  # starts deleting the oldest file once 50 logs exist
 error_log = []
 
 
+def log_backup_totals(total_moved, total_trashed, total_copied):
+    global log_file
+    log_file += "-----------------------------------------------------------------------\n"
+    log_file += "------------------ FINAL COUNTS FOR ALL BACKUPS -----------------------\n"
+    log_file += "Moved: " + str(total_moved) + "\n"
+    log_file += "Trashed: " + str(total_trashed) + "\n"
+    log_file += "Copied: " + str(total_copied) + "\n"
+    log_file += "-----------------------------------------------------------------------\n"
+    log_file += "-----------------------------------------------------------------------\n"
+    print("-----------------------------------------------------------------------")
+    print("------------------ FINAL COUNT FOR ALL BACKUPS -----------------------")
+    print("Moved: " + str(total_moved))
+    print("Trashed: " + str(total_trashed))
+    print("Copied: " + str(total_copied))
+    print("-----------------------------------------------------------------------")
+
+
 def get_last_log_file_path():
     """ Returns the path to the latest log file to be made """
     if not exists("log/"):

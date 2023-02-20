@@ -14,6 +14,9 @@ skip_folders = []
 busy = False  # waiting for a process to be completed
 get_all_filenames_thread_output = []
 
+total_moved = 0
+total_trashed = 0
+total_copied = 0
 
 # endregion
 
@@ -148,6 +151,9 @@ def copy_from_main_to_backup_directory(using_windows, use_graphics, window, main
     # endregion
 
     moved, copied, trashed = 0, 0, 0
+    global total_moved
+    global total_trashed
+    global total_copied
 
     # showing the loading bar now
     if use_graphics:
@@ -166,6 +172,7 @@ def copy_from_main_to_backup_directory(using_windows, use_graphics, window, main
                 # moving a file instead of doing a copy and delete
                 shutil.move(del_files[j].target_path, new_files[i].target_path)
                 moved += 1
+                total_moved += 1
                 # --------------------------------------------------- logging
                 msg = "  Moving: '" + get_filename(new_files[i].target_path) + "'"
                 print(msg)
@@ -221,6 +228,7 @@ def copy_from_main_to_backup_directory(using_windows, use_graphics, window, main
             # os.remove(backup_directory + file_in_backup) # old method that fully deletes file instantly
             trash.trash_file(del_files[i].target_path)
             trashed += 1
+            total_trashed += 1
             # deleting folder if its empty now
             delete_directory_if_empty(del_files[i].target_path)
 
@@ -282,6 +290,7 @@ def copy_from_main_to_backup_directory(using_windows, use_graphics, window, main
             # log messages done after message is returned
             return "INSUFFICIENT SPACE"
         copied += 1
+        total_copied += 1
         if use_graphics:
             thread1 = threading.Thread(target=copy_file_thread, args=(new_files[i].source_path,
                                                                       new_files[i].target_path))

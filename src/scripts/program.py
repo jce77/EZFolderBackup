@@ -49,11 +49,16 @@ def backup_operation(window, main_folder, backup_folders):
     # comparing the other directories and deleting files that no longer exist
     error_msg = ""
     response = ""
+    count = -1
+    list_values = window["-BACKUP-LIST-"].get_list_values()
     for path in backup_folders:
+        count += 1
         backup_directory = files.format_text(path, using_windows)
         if not exists(backup_directory):
             logging.log_file += "Skipping this backup location, not found: '" + backup_directory + "'." + "\n"
             continue
+        if ui.using_gui:
+            window["-BACKUP-LIST-"].set_value(list_values[count])  # selecting the preset in the GUI
         response = files.copy_from_main_to_backup_directory(using_windows, ui.using_gui, window, main_folder,
                                                             list_of_files_to_backup, backup_directory)
         if "NOT FOUND" in response:
@@ -95,10 +100,14 @@ def run_backup_all(window):
     logging.log_file += "==============================================================\n"
     logging.log_file += "==============================================================\n"
     print("Backup up all presets: \n===========================")
+    files.total_moved = 0
+    files.total_trashed = 0
+    files.total_copied = 0
     for preset in presets:
         print("Backing Up '" + str(preset) + "'")
         if ui.using_gui:
             window["-PRESET LIST-"].set_value(preset)  # selecting the preset in the GUI
+            saving.load_selected_preset(presets[preset], window, preset)
         logging.log_file += "Backing Up '" + str(preset) + "'\n"
         logging.log_file += main_folder + "\n\n"
         response = backup_operation(window, presets[preset]['main_folder'], presets[preset]['backup_folders'])
@@ -110,6 +119,7 @@ def run_backup_all(window):
             return
         logging.log_file += "-----------------------------------------------------------------------\n"
         print("-----------------------------------------------------------------------")
+    logging.log_backup_totals(files.total_moved, files.total_trashed, files.total_copied)
     logging.log_file += logging.get_errors()
     logging.print_log("Backup")
     pass
@@ -120,7 +130,11 @@ def run_backup(window, main_folder, backup_folders):
     logging.restart_log()
     logging.log_file += "Backup Log For Main Folder:\n"
     logging.log_file += main_folder + "\n\n"
+    files.total_moved = 0
+    files.total_trashed = 0
+    files.total_copied = 0
     backup_operation(window, main_folder, backup_folders)
+    logging.log_backup_totals(files.total_moved, files.total_trashed, files.total_copied)
     logging.log_file += logging.get_errors()
     logging.print_log("Backup")
 
@@ -176,13 +190,20 @@ def run_commands(commands):
                 # ensure changes are persistent
                 saving.save_presets_to_config(presets, using_windows)
     if "-setuptestenv" in keys:
+        file_size = 0
+        for cmd in commands:
+            if type(cmd) == list and cmd[0] == "-setuptestenv":
+                if cmd[1] != '':
+                    file_size = int(cmd[1])
+                else:
+                    file_size = 2500000  # default size
         presets = {}
         for i in range(5):
             test_dir = os.getcwd() + "/unit_test_files" + str(i)
             # test_dir = test_dir.replace("\\", "/")
             test_dir = files.format_text(test_dir, using_windows)
             files.fully_delete_path(test_dir)
-            files.create_test_files(test_dir, 2500000)
+            files.create_test_files(test_dir, file_size)
             backup_name = "Test Backup" + str(i)
             presets[backup_name] = {}
             presets[backup_name]["main_folder"] = test_dir + "/main"
