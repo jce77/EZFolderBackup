@@ -375,23 +375,28 @@ def show_gui(using_windows):
                 window["-BACKUP-LIST-"].update(values=new_values)
                 # refresh_backup_locations_list(window, main.presets)
                 window["-BACKUP-LIST-"].set_value(values["-NEW-BACKUP-LOCATION-"])
+
             else:
                 window["-ERROR-TEXT-"].update("Click browse and select a folder first.")
+            window["-NEW-BACKUP-LOCATION-"].update("")
 
         elif event == "-REMOVE-NEW-BACKUP-":  # deleting a backup location from the right
             new_values = window["-BACKUP-LIST-"].get_list_values()
+            window["-BACKUP-LIST-"].update("")
             found = False
             for i in range(len(new_values)):
                 if new_values[i] == values["-NEW-BACKUP-LOCATION-"]:
                     found = True
                     del new_values[i]
+
                     window["-BACKUP-LIST-"].update(values=new_values)
                     print("Deleted backup location from GUI: " + str(values["-NEW-BACKUP-LOCATION-"]))
+
                     # refresh_backup_locations_list(window, main.presets)
-                    window["-NEW-BACKUP-LOCATION-"].update("")
                     break
             if not found:
                 window["-ERROR-TEXT-"].update("Select a backup location from the list on the right first.")
+            window["-NEW-BACKUP-LOCATION-"].update("")
         elif event == "Delete":  # deleting a preset from the left
             if values["-CURRENT-PRESET-NAME-"] in main.presets:
                 if not question_box("Delete preset '" + str(values["-CURRENT-PRESET-NAME-"]) + "'?", 80, 15):

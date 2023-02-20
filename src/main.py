@@ -7,6 +7,7 @@ Update v1.1.5
 - Added better UI error feedback that explains how the buttons work
 - Added tooltips to the UI buttons
 - Images folder gets copied into the current directory if its nearby, for when compiling scripts from fresh project download.
+- Updated README file
 
 
 
