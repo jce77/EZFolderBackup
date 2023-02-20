@@ -50,7 +50,8 @@ def backup_operation(window, main_folder, backup_folders):
     error_msg = ""
     response = ""
     count = -1
-    list_values = window["-BACKUP-LIST-"].get_list_values()
+    if ui.using_gui:
+        list_values = window["-BACKUP-LIST-"].get_list_values()
     for path in backup_folders:
         count += 1
         backup_directory = files.format_text(path, using_windows)
