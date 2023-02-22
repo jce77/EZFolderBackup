@@ -1,7 +1,7 @@
 # EZ Folder Backup
 
 ## About
-_**EZ Folder Backup**_ is a versatile open-source local file backup tool
+_**EZ Folder Backup**_ is a versatile free open-source local file backup tool
 for Windows and Linux operating systems with a graphical interface for standard users and
 extensive command-line run parameters for advanced users. 
 
@@ -25,7 +25,7 @@ The latest version can be found [here](https://github.com/jce77/EZFolderBackup).
   - Download dependencies on pip:
       - _send2trash_: `$ pip install send2trash`, its optional to skip downloading this, but not recommended. 
   - See all commands by running `python3 main.py -help`.
-  - See _Basic Usage Command-Line Only_ below for usage instructions. 
+  - See _Basic Usage Command-Line Only_ below for further instructions. 
 
 ## Basic Usage With Graphical Interface
 - Enter the _main folder_ which you want to be protected by this backup.
@@ -41,15 +41,20 @@ a clone of the _main folder_, and multiple _backup locations_ can be added.
 ## Basic Usage Command-Line Only
 - Note: Command `python` may be `python3` depending on the operating system.
 - View all commands: `$ python main.py -help` or look below at the *All Run Parameters* section.
-- Create a backup preset with this command:
+- Create a backup preset:
   - `$ python main.py -createpreset MyBackup -m path1 -b path2`
   - The path after `-m` is the main folder that you want to backup. The path
-after `-b` is the folder you want the main folder copied into, this can be repeated if multiple backup locations are required.
-- Run the backup preset: `$ python main.py -runpreset MyBackup`
-- View the results: ` $ python main.py -viewlog`
+after `-b` is the folder you want the main folder copied into, this can be repeated if multiple backup locations are required, each location will require `-b` preceding it. 
+- Run the backup preset: 
+  - `$ python main.py -runpreset MyBackup`
+- View the results:
+  - ` $ python main.py -viewlog`
 
-## Getting Started Video For Both Windows and Linux
-[![Windows Usage](http://img.youtube.com/vi/jmEQumGNg7o/0.jpg)](https://youtu.be/jmEQumGNg7o "Getting Started")
+## Graphical Interface Usage Video
+[![Windows Usage](http://img.youtube.com/vi/3_gKugIbbsE/0.jpg)](https://youtu.be/3_gKugIbbsE "Graphical Interface Usage Video")
+
+## Command-Line Usage Video
+[![Windows Usage](http://img.youtube.com/vi/gIA1575mpTo/0.jpg)](https://youtu.be/gIA1575mpTo "Command-Line Usage Video")
 
 ## All Run Parameters
  
@@ -57,8 +62,8 @@ after `-b` is the folder you want the main folder copied into, this can be repea
 `-deletepreset name.` Deletes the preset with the input name.  
 `-h` Show help menu and exit.                 
 `-hf` Creates a file help.txt containing the help menu.                               
-`-logfilemax count` Sets the maximum number of log files before the oldest file is always deleted.
-`-movedown name` Moves the input preset down in the list. 
+`-logfilemax count` Sets the maximum number of log files before the oldest file is always deleted.  
+`-movedown name` Moves the input preset down in the list.  
 `-moveup name` Moves the input preset up in the list.   
 `-nologging on` Backups will not create log files.       
 `-nologging off` Each backup will create a log file.      
@@ -70,9 +75,9 @@ after `-b` is the folder you want the main folder copied into, this can be repea
 `-skipfolder add foldername` Skips this folder name, use `-skipfolder` once per new filename to be skipped. Do not enter a path, just the folder name.  
 `-skipfolder remove foldername` Removes a skipped folder name.           
 `-support` Show support email for questions.        
-`-trashfiles on` Toggles on recycling/trashing of files that no longer exist in the main folder. 
-`-trashfiles off` Toggles off recycling/trashing of files that no longer exist in the main folder. 
-`-version` Show the current version of this program.
+`-trashfiles on` Toggles on recycling/trashing of files that no longer exist in the main folder.  
+`-trashfiles off` Toggles off recycling/trashing of files that no longer exist in the main folder.   
+`-version` Show the current version of this program.  
 `-viewlog` Show the latest log file.                    
 `-viewpresets` Shows all presets.                       
 `-viewsettings` Shows the current settings.
