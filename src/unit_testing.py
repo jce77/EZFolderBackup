@@ -6,6 +6,7 @@ import main
 from scripts import files
 from scripts import logging
 from scripts import saving
+from sys import platform
 
 
 class TestStringMethods(unittest.TestCase):
@@ -73,24 +74,24 @@ class TestStringMethods(unittest.TestCase):
             f.close()
         self.assertEqual(passed, True)
 
-    def test_command_line_cleanup(self):
-        """ Tests toggling cleanup on and off """
-        print(">>>>>>>TEST test_command_line_cleanup")
-        main.testing_start("-cleanup on".split(" "))
+    def test_command_line_trashfiles(self):
+        """ Tests toggling trashfiles on and off """
+        print(">>>>>>>TEST test_command_line_trashfiles")
+        main.testing_start("-trashfiles on".split(" "))
         passed = False
         f = open(os.getcwd() + "/settings.cfg", "r")
         for line in f:
-            if "cleanup" in line:
+            if "trash_files" in line:
                 if "True" in line:
                     passed = True
                     break
         f.close()
         if passed:
             passed = False
-            main.testing_start("-cleanup off".split(" "))
+            main.testing_start("-trashfiles off".split(" "))
             f = open(os.getcwd() + "/settings.cfg", "r")
             for line in f:
-                if "cleanup" in line:
+                if "trash_files" in line:
                     if "False" in line:
                         passed = True
                         break
@@ -100,19 +101,19 @@ class TestStringMethods(unittest.TestCase):
     def test_command_line_create_and_delete_preset(self):
         """ Creates a number of presets and files, and ensures copying/moving/deleting all works """
         print(">>>>>>>TEST test_create_and_delete_preset")
-        if main.program.using_windows:
-            prompt = "-createpreset Test Preset 83245 -m C:\\main folder -b C:\\backup 1 -b C:\\backup 2 " \
-                     "-b C:\\backup 3 -b C:\\backup 4 -b C:\\backup 5".split(" ")
-            l = "\\"
-        else:
-            prompt = "-createpreset Test Preset 83245 -m C:/main folder -b C:/backup 1 -b C:/backup 2 " \
-                     "-b C:/backup 3 -b C:/backup 4 -b C:/backup 5".split(" ")
-            l = "/"
+        using_windows = False
+        if 'win32' in platform or 'win64' in platform:
+            using_windows = True
+        prompt = files.format_text("-createpreset Test Preset 83245 -m C:/main folder -b C:/backup 1 "
+                                   "-b C:/backup 2 -b C:/backup 3 -b C:/backup 4 -b C:/backup 5", using_windows).split(
+            " ")
+        l = files.format_text("/", using_windows)
         main.testing_start(prompt)
         f = open(os.getcwd() + "/presets/presets.cfg", "r")
         passed = False
         step = 0
         for line in f:
+            print("LINE: " + str(line) + ", passed=" + str(passed) + ", step=" + str(step))
             if step == 0:
                 if "Test Preset 83245" in line:
                     step += 1
@@ -134,6 +135,11 @@ class TestStringMethods(unittest.TestCase):
             elif step == 6:
                 if "C:" + l + "backup 5" in line:
                     passed = True
+                    print("Passed = true")
+            else:
+                passed = False
+                print("Failed at line: " + str(line))
+                break
         f.close()
         if passed:
             main.testing_start("-deletepreset Test Preset 83245".split(" "))
@@ -164,7 +170,8 @@ class TestStringMethods(unittest.TestCase):
                                                           "-b " + test_dir + "/b3 "
                                                           "-b " + test_dir + "/b4 "
                                                           "-b " + test_dir + "/b5 "
-                                                          "-cleanup on -nologging off").split(' '))
+                                                          "-trashfiles on -nologging off").split(
+            ' '))
         passed = True
         for i in range(1, 6):
             if not files.folders_are_equal(test_dir + "/main", test_dir + "/b" + str(i)):
@@ -197,7 +204,7 @@ class TestStringMethods(unittest.TestCase):
                                     i] + "/b3 "
                                          "-b " + test_dirs[i] + "/b4 "
                                                                 "-b " + test_dirs[i] + "/b5 "
-                                                                                       "-cleanup on -nologging off").split(
+                                                                                       "-trashfiles on -nologging off").split(
                 ' '))
             if not files.exists_in_cfg("preset=" + preset_names[i], "/presets/presets.cfg"):
                 self.assertEqual("FAILED for -createpreset command", False)
@@ -245,7 +252,7 @@ class TestStringMethods(unittest.TestCase):
                                                                                                                        "-b " + test_dir + "/b3 "
                                                                                                                                           "-b " + test_dir + "/b4 "
                                                                                                                                                              "-b " + test_dir + "/b5 "
-                                                                                                                                                                                "-cleanup on -nologging off").split(
+                                                                                                                                                                                "-trashfiles on -nologging off").split(
             ' '))
         if not files.exists_in_cfg("preset=" + preset_name, "/presets/presets.cfg"):
             self.assertEqual("FAILED for -createpreset command", False)
@@ -293,7 +300,7 @@ class TestStringMethods(unittest.TestCase):
                                 " -m " + test_dirs[i] + "/main "
                                                         "-b " + test_dirs[i] + "/b1 "
                                                                                "-b " + test_dirs[i] + "/b2 "
-                                                                                                      "-cleanup on -nologging off").split(
+                                                                                                      "-trashfiles on -nologging off").split(
                 ' '))
             if not files.exists_in_cfg("preset=" + preset_names[i], "/presets/presets.cfg"):
                 self.assertEqual("FAILED for -createpreset command", False)
@@ -370,7 +377,7 @@ class TestStringMethods(unittest.TestCase):
                                                                                                 "-b " + test_dir + "/b3 "
                                                                                                                    "-b " + test_dir + "/b4 "
                                                                                                                                       "-b " + test_dir + "/b5 "
-                                                                                                                                                         "-cleanup on -nologging off").split(
+                                                                                                                                                         "-trashfiles on -nologging off").split(
             ' '))
 
         # ensuring that filename was not backed up
@@ -428,11 +435,12 @@ class TestStringMethods(unittest.TestCase):
         # running backup
         main.testing_start(("-runbackup -m " + test_dir + "/main "
                                                           "-b " + test_dir + "/b1 "
-                                                          "-b " + test_dir + "/b2 "
-                                                          "-b " + test_dir + "/b3 "
-                                                          "-b " + test_dir + "/b4 "
-                                                          "-b " + test_dir + "/b5 "
-                                                          "-cleanup on -nologging off").split(' '))
+                                                                             "-b " + test_dir + "/b2 "
+                                                                                                "-b " + test_dir + "/b3 "
+                                                                                                                   "-b " + test_dir + "/b4 "
+                                                                                                                                      "-b " + test_dir + "/b5 "
+                                                                                                                                                         "-trashfiles on -nologging off").split(
+            ' '))
 
         # ensuring that filename was not backed up
         for location in file_backup_locations:
@@ -451,4 +459,3 @@ class TestStringMethods(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-

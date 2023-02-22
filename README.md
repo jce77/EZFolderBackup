@@ -3,44 +3,49 @@
 ## About
 _**EZ Folder Backup**_ is a versatile open-source local file backup tool
 for Windows and Linux operating systems with a graphical interface for standard users and
-extensive command-line run parameters for advanced users.
+extensive command-line run parameters for advanced users. 
 
 The latest version can be found [here](https://github.com/jce77/EZFolderBackup).
 
 ## Running Instructions:
-- Running on Windows:
-  - Ensure the _images_ folder is in the same folder as the included .exe file
-  - Run _EZ Folder Backup.exe_
-- Running on Linux with command line only:
-  - (Optional) Install _send2trash_ on pip: `$ pip install send2trash `
-  - View all commands with: `$ python3 main.py -help`, more in-depth instructions are below.
-- Running on Ubuntu Linux with graphics:
-  - Ensure the _images_ folder is in the same folder as _main.py_
-  - Install _PySimpleGUI_ on pip: `$ pip install pysimplegui `
-  - Install _send2trash_ on pip: `$ pip install send2trash `
-  - Install _tkinter_ on your OS:
+- Running on Windows with graphics (easy way):
+  - Download all project files, images folder is needed at least.
+  - Run _EZ Folder Backup.exe_ inside the _build_ folder. 
+- Running with graphics by compiling python files:
+  - Download dependencies on pip:
+    - _PySimpleGUI_: `$ pip install pysimplegui `
+    - _send2trash_: `$ pip install send2trash `
+  - If using Linux also download tkinter directly to your OS
     - If using Ubuntu Linux with apt:
       - `$ sudo apt-get install python3-tk`
     - Otherwise if using a Linux distribution with dnf:
       - `$ sudo dnf install python3-tkinter`
-  - Run with: `$ python3 main.py`
+  - Start program by running `python3 main.py`
+- Running command-line only by compiling python files:
+  - Download dependencies on pip:
+      - _send2trash_: `$ pip install send2trash`, its optional to skip downloading this, but not recommended. 
+  - See all commands by running `python3 main.py -help`.
+  - See _Basic Usage Command-Line Only_ below for usage instructions. 
 
 ## Basic Usage With Graphical Interface
-- Enter the _main folder_ which you want to be backed up to another location.
-- Enter one to five _backup locations_ that will become duplicates of the main folder.
-- Enter a _backup preset name_.
-- Click _Save_ to save these settings. 
-- Click _Backup Files_.
-- Click _View Backup Log_ to show the results of the backup.
+- Enter the _main folder_ which you want to be protected by this backup.
+- On the right enter a _backup location_ and click the _add_ button. This will become
+a clone of the _main folder_, and multiple _backup locations_ can be added. 
+- Enter the _preset name_, a label for this _main folder_'s backup operation.
+- Click _Save_ to save this preset for future backups. 
+- Check _Settings_ menu for other options.
+- Click _Run Backup_ and follow prompts.
+- Click the X button to pause/cancel the backup if needed.
+- Click _View Backup Log_ to show the results of the backup afterwards.
 
 ## Basic Usage Command-Line Only
-- View all commands: `$ python main.py -help` or look below at *All Run Parameters* section.
-- Create a backup preset. _path1_ is the _main folder_ that you want to back up, and 
-  _path2_ is the folder that will become an exact duplicate of the _main folder_. The
-  `-b` command paired with a path can be repeated up to five fimes.
-  
+- Note: Command `python` may be `python3` depending on the operating system.
+- View all commands: `$ python main.py -help` or look below at the *All Run Parameters* section.
+- Create a backup preset with this command:
   - `$ python main.py -createpreset MyBackup -m path1 -b path2`
-- Run the backup: `$ python main.py -runpreset MyBackup`
+  - The path after `-m` is the main folder that you want to backup. The path
+after `-b` is the folder you want the main folder copied into, this can be repeated if multiple backup locations are required.
+- Run the backup preset: `$ python main.py -runpreset MyBackup`
 - View the results: ` $ python main.py -viewlog`
 
 ## Getting Started Video For Both Windows and Linux
@@ -48,31 +53,33 @@ The latest version can be found [here](https://github.com/jce77/EZFolderBackup).
 
 ## All Run Parameters
  
-`-cleanup on` Toggles on deletion of files that no longer exist in the main folder.         
-`-cleanup off` Toggles off deletion of files that no longer exist in the main folder.         
-`-createpreset name -m path -b path` Creates a preset with the input name, main folder, and up to five backup folder paths that are preceded by -b.    
-`-deletepreset name` Deletes the preset with the input name.  
+`-createpreset name -m path -b path` Creates a preset with a name, main folder and one or more backup folders that are each preceded by `-b`.          
+`-deletepreset name.` Deletes the preset with the input name.  
 `-h` Show help menu and exit.                 
 `-hf` Creates a file help.txt containing the help menu.                               
-`-logfilemax count` Sets the maximum number of log files before the oldest file is deleted.       
-`-movedown name` Moves the input preset down in the list.       
-`-moveup name` Moves the input preset up in the list.       
-`-nologging on` Toggles on stopping debug logs from being printed after backups.                   
-`-nologging off` Toggles off stopping debug logs from being printed after backups.             
-`-runbackup -m path -b path` Runs backup for main folder -m and up to five backup folders that are each preceded by -b. Optionally add '-cleanup' to delete files that no longer exist in the main folder.                         
-`-runbackupall` Runs backup for every saved preset. Optionally add '-cleanup' to delete files that no longer exist in the main folder.        
-`-runpreset name` Runs backup for the input preset.        
-`-skipfile add filename` Skips this filename, use -skipfile once per new filename to be skipped. Do not enter a path, just the file name.        
+`-logfilemax count` Sets the maximum number of log files before the oldest file is always deleted.
+`-movedown name` Moves the input preset down in the list. 
+`-moveup name` Moves the input preset up in the list.   
+`-nologging on` Backups will not create log files.       
+`-nologging off` Each backup will create a log file.      
+`-runbackup -m path -b path` Runs backup for main folder `-m` and one or more backup folders that are each preceded by `-b.`                         
+`-runbackupall` Runs backup for every saved preset.      
+`-runpreset name` Runs backup for the input preset name.   
+`-skipfile add filename` Skips this filename, use `-skipfile` once per new filename to be skipped. Do not enter a path, just the file name.        
 `-skipfile remove filename` Removes a skipped file name.             
-`-skipfolder add foldername` Skips this folder name, use -skipfolder once per new filename to be skipped. Do not enter a path, just the folder name.  
+`-skipfolder add foldername` Skips this folder name, use `-skipfolder` once per new filename to be skipped. Do not enter a path, just the folder name.  
 `-skipfolder remove foldername` Removes a skipped folder name.           
-`-skippath remove pathname` Removes a skipped path name.             
 `-support` Show support email for questions.        
-`-version` Show the current version of this program.        
-`-viewlog` Show latest log file.                    
+`-trashfiles on` Toggles on recycling/trashing of files that no longer exist in the main folder. 
+`-trashfiles off` Toggles off recycling/trashing of files that no longer exist in the main folder. 
+`-version` Show the current version of this program.
+`-viewlog` Show the latest log file.                    
 `-viewpresets` Shows all presets.                       
-`-viewsettings` Shows the current settings.              
-                                                                              
-To make a donation, please visit https://ko-fi.com/jcecode                    
+`-viewsettings` Shows the current settings.
+
+For updates and documentation, please visit: [https://github.com/jce77/EZFolderBackup  ](https://github.com/jce77/EZFolderBackup  )
+
+To make a donation, please visit: [https://ko-fi.com/jcecode](https://ko-fi.com/jcecode)
+
 --------------------------------------------------------------------------------
 
