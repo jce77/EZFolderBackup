@@ -1,13 +1,13 @@
-# EZ Folder Backup
+## EZ Folder Backup
 
-## About
+### About
 _**EZ Folder Backup**_ is a versatile free open-source local file backup tool
-for Windows and Linux operating systems with a graphical interface for standard users and
-extensive command-line run parameters for advanced users. 
+for Windows and Linux operating systems with a graphical interface for standard use and
+extensive command-line run parameters for advanced use.
 
 The latest version can be found [here](https://github.com/jce77/EZFolderBackup).
 
-## Running Instructions:
+### Running Instructions:
 - Running on Windows with graphics (easy way):
   - Download all project files, images folder is needed at least.
   - Run _EZ Folder Backup.exe_ inside the _build_ folder. 
@@ -27,7 +27,7 @@ The latest version can be found [here](https://github.com/jce77/EZFolderBackup).
   - See all commands by running `python3 main.py -help`.
   - See _Basic Usage Command-Line Only_ below for further instructions. 
 
-## Basic Usage With Graphical Interface
+### Basic Usage With Graphical Interface
 - Enter the _main folder_ which you want to be protected by this backup.
 - On the right enter a _backup location_ and click the _add_ button. This will become
 a clone of the _main folder_, and multiple _backup locations_ can be added. 
@@ -38,7 +38,7 @@ a clone of the _main folder_, and multiple _backup locations_ can be added.
 - Click the X button to pause/cancel the backup if needed.
 - Click _View Backup Log_ to show the results of the backup afterwards.
 
-## Basic Usage Command-Line Only
+### Basic Usage Command-Line Only
 - Note: Command `python` may be `python3` depending on the operating system.
 - View all commands: `$ python main.py -help` or look below at the *All Run Parameters* section.
 - Create a backup preset:
@@ -50,13 +50,13 @@ after `-b` is the folder you want the main folder copied into, this can be repea
 - View the results:
   - ` $ python main.py -viewlog`
 
-## Graphical Interface Usage Video
+### Graphical Interface Usage Video
 [![Windows Usage](http://img.youtube.com/vi/3_gKugIbbsE/0.jpg)](https://youtu.be/3_gKugIbbsE "Graphical Interface Usage Video")
 
-## Command-Line Usage Video
+### Command-Line Usage Video
 [![Windows Usage](http://img.youtube.com/vi/gIA1575mpTo/0.jpg)](https://youtu.be/gIA1575mpTo "Command-Line Usage Video")
 
-## All Run Parameters
+### All Run Parameters
  
 `-createpreset name -m path -b path` Creates a preset with a name, main folder and one or more backup folders that are each preceded by `-b`.          
 `-deletepreset name.` Deletes the preset with the input name.  
@@ -82,6 +82,17 @@ after `-b` is the folder you want the main folder copied into, this can be repea
 `-viewpresets` Shows all presets.                       
 `-viewsettings` Shows the current settings.
 
+
+### Troubleshooting
+- Program is stuck on a copy/move/delete operation
+  - Likely the file is locked in some way, a program may need to be shut down, or otherwise
+   the file or folder its inside can be ignored in the settings. 
+  - Look in the GUI or console to see the name of the file its stuck on. Go into GUI settings or use console commands to ignore the folder containing this file, 
+  or use the similar setting for ignoring filenames.
+
+
+
+--------------------------------------------------------------------------------
 For updates and documentation, please visit: [https://github.com/jce77/EZFolderBackup  ](https://github.com/jce77/EZFolderBackup  )
 
 To make a donation, please visit: [https://ko-fi.com/jcecode](https://ko-fi.com/jcecode)
