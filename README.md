@@ -84,11 +84,14 @@ after `-b` is the folder you want the main folder copied into, this can be repea
 
 
 ### Troubleshooting
-- Program is stuck on a copy/move/delete operation
+- Program is stuck on a copy/move/delete operation:
   - Likely the file is locked in some way, a program may need to be shut down, or otherwise
    the file or folder its inside can be ignored in the settings. 
   - Look in the GUI or console to see the name of the file its stuck on. Go into GUI settings or use console commands to ignore the folder containing this file, 
   or use the similar setting for ignoring filenames.
+- Program is moving a file into its same location:
+  - This can happen if a folder name has its case changed(for example Folder1 to folder1). To fix this
+go into the backup folders and ensure the folder name change is correctly set manually. 
 
 
 

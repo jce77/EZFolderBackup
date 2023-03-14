@@ -168,25 +168,20 @@ def copy_from_main_to_backup_directory(using_windows, use_graphics, window, main
         for j in range(len(del_files) - 1, -1, -1):
             # move operation will happen
             if new_files[i].size == del_files[j].size and new_files[i].filename == del_files[j].filename:
-                assure_path_to_file_exists(path_to_file(new_files[i].target_path))
-                # moving a file instead of doing a copy and delete
-                shutil.move(del_files[j].target_path, new_files[i].target_path)
-                moved += 1
-                total_moved += 1
                 # --------------------------------------------------- logging
                 msg = "  Moving: '" + get_filename(new_files[i].target_path) + "'"
                 print(msg)
-                logging.log_file += msg + "\n    to path: '" + new_files[i].target_path + "'\n"
-                # -------------------------------------------------------------
-                backup_location = backup_directory + file
+                logging.log_file += msg + "\n    from path: '" + del_files[j].target_path + "'\n"
+                logging.log_file += "    to path: '" + new_files[i].target_path + "'\n"
                 if use_graphics:
                     window["-ERROR-TEXT-"].update(str(ui.format_text_for_gui_display(msg)))
                     window.refresh()
-                assure_path_to_file_exists(path_to_file(backup_location))
-                shutil.copyfile(main_folder + file, backup_location)
-                # deleting folder if its empty now
+                # -------------------------------------------------------------
+                assure_path_to_file_exists(path_to_file(new_files[i].target_path))
+                shutil.move(del_files[j].target_path, new_files[i].target_path)
+                moved += 1
+                total_moved += 1
                 delete_directory_if_empty(del_files[j].target_path)
-
                 # deleting these items from the copy and delete lists, important to do this last
                 del new_files[i]
                 del del_files[j]
