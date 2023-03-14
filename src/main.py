@@ -1,17 +1,9 @@
 """
-EZ Folder Backup v1.1.5
+EZ Folder Backup v1.1.6
 
-Update v1.1.5
-- Changed around the UI buttons slightly
-- Added internet button
-- Added better UI error feedback that explains how the buttons work
-- Added tooltips to the UI buttons
-- Images folder gets copied into the current directory if its nearby, for when compiling scripts from fresh project download.
-- Updated README file
-- Each backup location is now selected during its backup
-- A total operation count is now shown at the end of the backup log for all operations
-
-
+Update v1.1.6
+- Fixed up the move operation lines
+- Added troubleshooting section to readme file
 
 
 
