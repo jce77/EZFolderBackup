@@ -55,9 +55,17 @@ def backup_operation(window, main_folder, backup_folders):
     for path in backup_folders:
         count += 1
         backup_directory = files.format_text(path, using_windows)
+
+        # if backup drive does not exist, try to create it
         if not exists(backup_directory):
-            logging.log_file += "Skipping this backup location, not found: '" + backup_directory + "'." + "\n"
-            continue
+            try:
+                files.assure_path_to_file_exists(backup_directory)
+                logging.log_file += "Created directory: '" + backup_directory + "'." + "\n"
+            except FileNotFoundError:
+                # the drive
+                logging.log_file += "Skipping, drive not plugged in for : '" + backup_directory + "'." + "\n"
+                continue
+
         if ui.using_gui:
             window["-BACKUP-LIST-"].set_value(list_values[count])  # selecting the preset in the GUI
         response = files.copy_from_main_to_backup_directory(using_windows, ui.using_gui, window, main_folder,
