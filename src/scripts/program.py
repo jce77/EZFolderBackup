@@ -61,9 +61,11 @@ def backup_operation(window, main_folder, backup_folders):
             try:
                 files.assure_path_to_file_exists(backup_directory)
                 logging.log_file += "Created directory: '" + backup_directory + "'." + "\n"
+                print("Created directory: '" + backup_directory + "'." + "\n")
             except (FileNotFoundError, PermissionError):
                 # the drive
                 logging.log_file += "Skipping, drive not plugged in for : '" + backup_directory + "'." + "\n"
+                print("Skipping, drive not plugged in for : '" + backup_directory + "'." + "\n")
                 continue
 
         if ui.using_gui:
@@ -117,7 +119,9 @@ def run_backup_all(window):
         if ui.using_gui:
             window["-PRESET LIST-"].set_value(preset)  # selecting the preset in the GUI
             saving.load_selected_preset(presets[preset], window, preset)
+        print("Backing Up '" + str(preset) + "'\n")
         logging.log_file += "Backing Up '" + str(preset) + "'\n"
+        print(main_folder + "\n\n")
         logging.log_file += main_folder + "\n\n"
         response = backup_operation(window, presets[preset]['main_folder'], presets[preset]['backup_folders'])
         if "BACKUP CANCELLED" in response:
@@ -130,6 +134,7 @@ def run_backup_all(window):
         print("-----------------------------------------------------------------------")
     logging.log_backup_totals(files.total_moved, files.total_trashed, files.total_copied)
     logging.log_file += logging.get_errors()
+    print(logging.get_errors())
     logging.print_log("Backup")
     pass
 
@@ -139,12 +144,14 @@ def run_backup(window, main_folder, backup_folders):
     logging.restart_log()
     logging.log_file += "Backup Log For Main Folder:\n"
     logging.log_file += main_folder + "\n\n"
+    print("Backup Log For Main Folder:\n" + main_folder + "\n\n")
     files.total_moved = 0
     files.total_trashed = 0
     files.total_copied = 0
     backup_operation(window, main_folder, backup_folders)
     logging.log_backup_totals(files.total_moved, files.total_trashed, files.total_copied)
     logging.log_file += logging.get_errors()
+    print(logging.get_errors())
     logging.print_log("Backup")
 
 
