@@ -61,7 +61,7 @@ def backup_operation(window, main_folder, backup_folders):
             try:
                 files.assure_path_to_file_exists(backup_directory)
                 logging.log_file += "Created directory: '" + backup_directory + "'." + "\n"
-            except FileNotFoundError:
+            except (FileNotFoundError, PermissionError):
                 # the drive
                 logging.log_file += "Skipping, drive not plugged in for : '" + backup_directory + "'." + "\n"
                 continue

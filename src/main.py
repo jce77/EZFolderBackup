@@ -1,9 +1,9 @@
 """
-EZ Folder Backup v1.1.6
+EZ Folder Backup v1.1.7
 
-Update v1.1.6
-- Fixed up the move operation lines
-- Added troubleshooting section to readme file
+Update v1.1.7
+- Backup locations will now be created automatically if the root folder does not exist, otherwise
+will be skipped if the drive is unplugged
 
 
 
