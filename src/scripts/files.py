@@ -208,6 +208,8 @@ def copy_from_main_to_backup_directory(using_windows, use_graphics, window, main
     # region 5. DOING DELETE OPERATIONS ================================================================================
     global delete_files
     if delete_files:
+        if use_graphics:
+            window["-ERROR-TEXT-"].update("Trashing files... See log for details.")
         for i in range(len(del_files)):
             file_name = get_filename(del_files[i].target_path)
             msg = ""
@@ -217,9 +219,13 @@ def copy_from_main_to_backup_directory(using_windows, use_graphics, window, main
                 msg += "  Trashing: '" + file_name + "'"
             print(msg)
             logging.log_file += msg + "\n    from path: '" + del_files[i].target_path + "'\n"
-            if use_graphics:
-                window["-ERROR-TEXT-"].update(str(ui.format_text_for_gui_display(msg)))
-                window.refresh()
+
+            # removed the message for trashing each file, because often there are 10,000 files to trash
+            # after making changes to a project.
+            # if use_graphics:
+            #     window["-ERROR-TEXT-"].update(str(ui.format_text_for_gui_display(msg)))
+            #     window.refresh()
+
             # os.remove(backup_directory + file_in_backup) # old method that fully deletes file instantly
             trash.trash_file(del_files[i].target_path)
             trashed += 1
@@ -265,43 +271,33 @@ def copy_from_main_to_backup_directory(using_windows, use_graphics, window, main
         # -----------------------------------------------------
         # copy the file over if its not found
         file_name = get_filename(new_files[i].target_path)
-        msg = "  Copying: '" + file_name + "'"
+        msg = f"  Copying: '{file_name}'"
         print(msg)
-        logging.log_file += msg + "\n    to path: '" + new_files[i].target_path + "'\n"
+        logging.log_file += f"{msg}\n    to path: '{new_files[i].target_path}'\n"
         if use_graphics:
             window["-ERROR-TEXT-"].update(str(ui.format_text_for_gui_display(msg)))
             window.refresh()
+
         assure_path_to_file_exists(new_files[i].target_path)
-        # assure_path_to_file_exists(path_to_file(new_files[i].target_path))
-        # ensuring there is enough space on the target drive for this operation
         new_space_used += new_files[i].size
-        # print("SPACE LEFT=" + str((target_drive_free_space - new_space_used) // (2 ** 30)) +
-        #       "GB left")
-        # print("new_space_used > target_drive_free_space? " + str(new_space_used > target_drive_free_space))
         if new_space_used > target_drive_free_space:
-            # print("NOT ENOUGH SPACE")
             if use_graphics:
                 ui.set_loading_bar_visible(window, False, using_windows)
-            # log messages done after message is returned
             return "INSUFFICIENT SPACE"
-        copied += 1
-        total_copied += 1
+
         if use_graphics:
-            thread1 = threading.Thread(target=copy_file_thread, args=(new_files[i].source_path,
-                                                                      new_files[i].target_path))
-            thread1.start()
-            # input check and refresh
-            while busy:
-                window.refresh()
-                event, values = window.read(timeout=0)
-                if event != '__TIMEOUT__':
-                    window["-ERROR-TEXT-"].update(str("Pausing Backup..."))
-                    pause_now = True
-            # loading bar stuff
             progress_count += 1
             window["-BAR-"].update(progress_count / files_to_process)
-        else:  # command line copy
-            shutil.copyfile(new_files[i].source_path, new_files[i].target_path)
+            thread1 = threading.Thread(target=copy_file, args=(new_files[i].source_path, new_files[i].target_path))
+            thread1.start()
+            thread1.join()  # Ensure thread completes before proceeding
+            # Check for user input to pause/cancel
+            event, values = window.read(timeout=100)  # Increase timeout as necessary
+            if event != '__TIMEOUT__':
+                window["-ERROR-TEXT-"].update(str("Pausing Backup..."))
+                pause_now = True
+        else:
+            copy_file(new_files[i].source_path, new_files[i].target_path)
     # endregion
 
     # region 7. Backup Successful, returning
@@ -326,6 +322,12 @@ import random
 import string
 
 
+def copy_file(src, dst):
+    try:
+        shutil.copy2(src, dst)  # Use copy2 to preserve metadata
+    except Exception as e:
+        print(f"Error copying {src} to {dst}: {e}")
+        logging.log_file += f"Error copying {src} to {dst}: {e}\n"
 
 
 def exists_in_cfg(text, cfg_path):

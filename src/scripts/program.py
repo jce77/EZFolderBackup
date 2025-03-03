@@ -56,17 +56,24 @@ def backup_operation(window, main_folder, backup_folders):
         count += 1
         backup_directory = files.format_text(path, using_windows)
 
-        # if backup drive does not exist, try to create it
+        # if backup folder does not exist, try to create it
         if not exists(backup_directory):
             try:
-                files.assure_path_to_file_exists(backup_directory)
+                # added a filename here because otherwise it assures a path to the folder above the directory
+                files.assure_path_to_file_exists(backup_directory + "/file.b")
                 logging.log_file += "Created directory: '" + backup_directory + "'." + "\n"
                 print("Created directory: '" + backup_directory + "'." + "\n")
             except (FileNotFoundError, PermissionError):
-                # the drive
+                # the drive is not plugged in
                 logging.log_file += "Skipping, drive not plugged in for : '" + backup_directory + "'." + "\n"
                 print("Skipping, drive not plugged in for : '" + backup_directory + "'." + "\n")
                 continue
+            # maybe add this in the future. github should remind me about this in the future.
+            # except OSError:
+            #     # the drive
+            #     logging.log_file += "Skipping, OSError for : '" + backup_directory + "'. Possibly corruption." + "\n"
+            #     print("Skipping, OSError for : '" + backup_directory + "'. Possibly corruption." + "\n")
+            #     continue
 
         if ui.using_gui:
             window["-BACKUP-LIST-"].set_value(list_values[count])  # selecting the preset in the GUI

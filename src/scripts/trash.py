@@ -104,25 +104,22 @@ def trash_file(path):
         try:
             send2trash(path)
         except FileNotFoundError:
-            msg = "ERROR: could not trash file at the path: \n   '" + path + "'\nThe name contains " \
-                                                                             "unrecognized characters that must be removed.\n"
+            msg = f"ERROR: could not trash file at the path: \n   '{path}'\nThe name contains unrecognized characters that must be removed.\n"
             logging.log_file += msg
             logging.log_error(msg)
             print(msg)
     else:
-        # command-line method for a fresh linux install with no modules
+        # Command-line method for a fresh Linux install with no modules
         global trash_files_path
         global trash_info_path
-        # making the info file
-        info_msg = "[Trash Info]\n"
-        info_msg += "Path=" + path + "\n"
-        current_datetime = datetime.now()
-        info_msg += "DeletionData=" + current_datetime.strftime("%Y-%m-%dT%H:%M:%S")
-        with open(trash_info_path + os.path.basename(path) + ".trashinfo", "w") as file:
+
+        # Making the info file
+        info_msg = f"[Trash Info]\nPath={path}\nDeletionDate={datetime.now().strftime('%Y-%m-%dT%H:%M:%S')}"
+        with open(os.path.join(trash_info_path, os.path.basename(path) + ".trashinfo"), "w") as file:
             file.write(info_msg)
-            file.close
-        # moving the file
-        shutil.move(path.replace("\\", "/"), trash_files_path)
+
+        # Moving the file
+        shutil.move(path, trash_files_path)
 
 
 def get_filename(full_path):

@@ -15,6 +15,7 @@ except ModuleNotFoundError:
 
 using_gui = False
 previous_skip_folders = []
+previous_skip_files = []
 button_size = (14, 1)
 
 
@@ -492,9 +493,10 @@ def refresh_presets_list(window, presets):
 
 def show_settings_box():
     global previous_skip_folders
+    global previous_skip_files
     global button_size
     previous_skip_files = copy.copy(files.skip_files)
-
+    previous_skip_folders = copy.copy(files.skip_folders)
     # region 1. layout
 
     layout = [
