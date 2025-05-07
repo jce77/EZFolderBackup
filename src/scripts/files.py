@@ -22,6 +22,7 @@ total_copied = 0
 
 # region 2. Data Types
 
+
 class FileInfo:
     """ File information compiled in a way to easily compare backup locations """
 
@@ -114,13 +115,17 @@ def copy_from_main_to_backup_directory(using_windows, use_graphics, window, main
     # region 2. Getting every new file that needs to go into this backup folder ================================
     new_files = []
     DEBUG = 0
-    for file in list_of_filenames_in_main:
+    for data in list_of_filenames_in_main:
+        # path_to_backup_folder
+        # path_from_backup_to_filename
+        # size
+        file = data.path_from_backup_to_filename
         DEBUG += 1
         if get_filename(file) in skip_files:
             print("skipping file: " + get_filename(file))
             continue
         found = False
-        file_size = get_file_size(main_folder + file)
+        file_size = data.size
         for j in range(len(files_in_backup_directory)):
             # debugging += "    comparing to " + file_in_backup + " with size " + str(backup_file_size) + "\n"
             if file == files_in_backup_directory[j].path_from_backup_to_filename and file_size == files_in_backup_directory[j].size:

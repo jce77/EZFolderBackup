@@ -41,10 +41,10 @@ def backup_operation(window, main_folder, backup_folders):
         window["-ERROR-TEXT-"].update("Calculating backup... ")
     print("Calculating backup... ")
     # getting and formatting files in main folder
-    list_of_files_to_backup = files.get_all_filenames(main_folder)
-    list_of_files_to_backup = files.remove_path_to_root_folder_from_each(main_folder, list_of_files_to_backup)
+    list_of_files_to_backup = files.get_all_file_infos(main_folder)
     for i in range(len(list_of_files_to_backup)):
-        list_of_files_to_backup[i] = files.format_text(list_of_files_to_backup[i], using_windows)
+        list_of_files_to_backup[i].path_to_backup_folder = files.format_text(list_of_files_to_backup[i].path_to_backup_folder, using_windows)
+        list_of_files_to_backup[i].path_from_backup_to_filename = files.format_text(list_of_files_to_backup[i].path_from_backup_to_filename, using_windows)
 
     # comparing the other directories and deleting files that no longer exist
     error_msg = ""
